@@ -1,14 +1,23 @@
-
-import { MapPin, Clock, DollarSign, CheckCircle, Printer } from "lucide-react";
-import { Order, OrderStatus } from "@/pages/Index";
+import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut } from "lucide-react";
+import { Order, OrderStatus, UserRole } from "@/pages/Index";
 
 interface DriverViewProps {
   orders: Order[];
   driverId: string;
+  userName?: string;
+  userRole?: UserRole;
   onUpdateOrder: (orderId: string, status: OrderStatus) => void;
+  onLogout?: () => void;
 }
 
-const DriverView = ({ orders, driverId, onUpdateOrder }: DriverViewProps) => {
+const DriverView = ({ 
+  orders, 
+  driverId, 
+  userName,
+  userRole = 'driver',
+  onUpdateOrder,
+  onLogout
+}: DriverViewProps) => {
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -35,12 +44,21 @@ const DriverView = ({ orders, driverId, onUpdateOrder }: DriverViewProps) => {
     }
   };
 
+  const getRoleTitle = () => {
+    switch (userRole) {
+      case 'driver': return 'Driver Dashboard';
+      case 'helper': return 'Helper Dashboard';
+      case 'cleaner': return 'Cleaner Dashboard';
+      default: return 'My Jobs';
+    }
+  };
+
   const printDriverReport = () => {
     const completedOrders = orders.filter(order => order.status === 'completed');
     const totalEarnings = completedOrders.reduce((sum, order) => sum + order.totalCost, 0);
     
     const reportContent = `
-      Driver Report - ${driverId}
+      ${getRoleTitle()} - ${userName || driverId}
       Generated: ${new Date().toLocaleDateString()}
       
       Summary:
@@ -74,8 +92,22 @@ const DriverView = ({ orders, driverId, onUpdateOrder }: DriverViewProps) => {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
-            <p className="text-gray-600">Manage your assigned moving jobs</p>
+            <div className="flex items-center space-x-3">
+              <h1 className="text-2xl font-bold text-gray-900">{getRoleTitle()}</h1>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="flex items-center text-red-600 hover:text-red-700 text-sm font-medium"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Logout
+                </button>
+              )}
+            </div>
+            <p className="text-gray-600">
+              {userName && `Welcome ${userName} - `}
+              Manage your assigned {userRole === 'driver' ? 'moving jobs' : `${userRole} tasks`}
+            </p>
           </div>
           {orders.length > 0 && (
             <button
@@ -94,7 +126,9 @@ const DriverView = ({ orders, driverId, onUpdateOrder }: DriverViewProps) => {
               <Clock className="h-12 w-12 text-gray-400 mx-auto" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">No Jobs Assigned</h2>
-            <p className="text-gray-600">You don't have any jobs assigned yet. Check back later!</p>
+            <p className="text-gray-600">
+              You don't have any {userRole === 'driver' ? 'jobs' : 'tasks'} assigned yet. Check back later!
+            </p>
           </div>
         ) : (
           <div className="space-y-4">

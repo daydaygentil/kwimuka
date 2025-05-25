@@ -1,5 +1,5 @@
 
-import { Truck, User, Settings, HelpCircle } from "lucide-react";
+import { Truck, User, Settings, HelpCircle, LogOut, LogIn } from "lucide-react";
 import { UserRole, ViewType } from "@/pages/Index";
 
 interface NavigationProps {
@@ -7,9 +7,20 @@ interface NavigationProps {
   setCurrentView: (view: string) => void;
   userRole: UserRole;
   onRoleChange: (role: UserRole) => void;
+  isAuthenticated?: boolean;
+  currentUserName?: string;
+  onLogout?: () => void;
 }
 
-const Navigation = ({ currentView, setCurrentView, userRole, onRoleChange }: NavigationProps) => {
+const Navigation = ({ 
+  currentView, 
+  setCurrentView, 
+  userRole, 
+  onRoleChange,
+  isAuthenticated = false,
+  currentUserName,
+  onLogout
+}: NavigationProps) => {
   return (
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +44,7 @@ const Navigation = ({ currentView, setCurrentView, userRole, onRoleChange }: Nav
               Home
             </button>
 
-            {userRole === 'customer' && (
+            {(!isAuthenticated || userRole === 'customer') && (
               <>
                 <button
                   onClick={() => setCurrentView('order')}
@@ -58,6 +69,32 @@ const Navigation = ({ currentView, setCurrentView, userRole, onRoleChange }: Nav
               </>
             )}
 
+            {isAuthenticated && (userRole === 'driver' || userRole === 'helper' || userRole === 'cleaner') && (
+              <button
+                onClick={() => setCurrentView('driver')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentView === 'driver' 
+                    ? 'text-green-600 bg-green-50' 
+                    : 'text-gray-700 hover:text-green-600'
+                }`}
+              >
+                My Jobs
+              </button>
+            )}
+
+            {isAuthenticated && userRole === 'admin' && (
+              <button
+                onClick={() => setCurrentView('admin')}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  currentView === 'admin' 
+                    ? 'text-green-600 bg-green-50' 
+                    : 'text-gray-700 hover:text-green-600'
+                }`}
+              >
+                Admin Panel
+              </button>
+            )}
+
             <button
               onClick={() => setCurrentView('help')}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -70,18 +107,34 @@ const Navigation = ({ currentView, setCurrentView, userRole, onRoleChange }: Nav
               Help
             </button>
 
-            {/* Role Selector */}
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-gray-500" />
-              <select
-                value={userRole}
-                onChange={(e) => onRoleChange(e.target.value as UserRole)}
-                className="border-0 bg-transparent text-sm font-medium text-gray-700 focus:ring-0"
-              >
-                <option value="customer">Customer</option>
-                <option value="driver">Driver</option>
-                <option value="admin">Admin</option>
-              </select>
+            {/* User Authentication Section */}
+            <div className="flex items-center space-x-3 border-l pl-3">
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center space-x-2">
+                    <User className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-700">{currentUserName}</span>
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={onLogout}
+                    className="flex items-center text-red-600 hover:text-red-700 text-sm font-medium"
+                  >
+                    <LogOut className="h-4 w-4 mr-1" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setCurrentView('unified-login')}
+                  className="flex items-center text-green-600 hover:text-green-700 text-sm font-medium"
+                >
+                  <LogIn className="h-4 w-4 mr-1" />
+                  Login
+                </button>
+              )}
             </div>
           </div>
         </div>

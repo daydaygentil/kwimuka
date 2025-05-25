@@ -8,14 +8,14 @@ import DriverView from "@/components/DriverView";
 import AdminPanel from "@/components/AdminPanel";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import TrackOrder from "@/components/TrackOrder";
-import AdminLogin from "@/components/AdminLogin";
-import DriverLogin from "@/components/DriverLogin";
+import UnifiedLogin from "@/components/UnifiedLogin";
 import ApplyJobs from "@/components/ApplyJobs";
 import HelpPage from "@/components/HelpPage";
+import TermsAndConditions from "@/components/TermsAndConditions";
 
-export type UserRole = 'customer' | 'driver' | 'admin';
+export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
 export type OrderStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
-export type ViewType = 'home' | 'order' | 'receipt' | 'driver' | 'admin' | 'track' | 'admin-login' | 'driver-login' | 'apply-jobs' | 'help';
+export type ViewType = 'home' | 'order' | 'receipt' | 'driver' | 'admin' | 'track' | 'unified-login' | 'apply-jobs' | 'help' | 'terms';
 
 export interface Order {
   id: string;
@@ -35,6 +35,8 @@ export interface Order {
   totalCost: number;
   status: OrderStatus;
   assignedDriver?: string;
+  assignedDriverName?: string;
+  assignedDriverPhone?: string;
   createdAt: Date;
 }
 
@@ -54,32 +56,49 @@ const Index = () => {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [isDriverLoggedIn, setIsDriverLoggedIn] = useState(false);
-  const [currentDriverId, setCurrentDriverId] = useState<string>('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [currentUserName, setCurrentUserName] = useState<string>('');
+
+  // Mock drivers data for assignment
+  const availableDrivers = [
+    { id: 'driver1', name: 'John Doe', phone: '+250 788 123 001' },
+    { id: 'driver2', name: 'Jane Smith', phone: '+250 788 123 002' },
+    { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003' },
+  ];
 
   const handleOrderSubmit = (order: Order) => {
-    setOrders(prev => [...prev, order]);
-    setCurrentOrder(order);
+    // Auto-assign to first available driver for demo
+    const assignedDriver = availableDrivers[0];
+    const updatedOrder = {
+      ...order,
+      status: 'assigned' as OrderStatus,
+      assignedDriver: assignedDriver.id,
+      assignedDriverName: assignedDriver.name,
+      assignedDriverPhone: assignedDriver.phone
+    };
+    
+    setOrders(prev => [...prev, updatedOrder]);
+    setCurrentOrder(updatedOrder);
     setCurrentView('receipt');
   };
 
   const handleRoleChange = (role: UserRole) => {
+    if (!isAuthenticated) {
+      setUserRole(role);
+      setCurrentView('unified-login');
+      return;
+    }
+
     setUserRole(role);
     switch (role) {
       case 'driver':
-        if (isDriverLoggedIn) {
-          setCurrentView('driver');
-        } else {
-          setCurrentView('driver-login');
-        }
+      case 'helper':
+      case 'cleaner':
+        setCurrentView('driver');
         break;
       case 'admin':
-        if (isAdminLoggedIn) {
-          setCurrentView('admin');
-        } else {
-          setCurrentView('admin-login');
-        }
+        setCurrentView('admin');
         break;
       default:
         setCurrentView('home');
@@ -87,6 +106,12 @@ const Index = () => {
   };
 
   const handleViewChange = (view: string) => {
+    // Check if view requires authentication
+    const protectedViews = ['driver', 'admin'];
+    if (protectedViews.includes(view) && !isAuthenticated) {
+      setCurrentView('unified-login');
+      return;
+    }
     setCurrentView(view as ViewType);
   };
 
@@ -94,19 +119,35 @@ const Index = () => {
     setJobApplications(prev => [...prev, application]);
   };
 
-  const handleAdminLogin = (success: boolean) => {
-    if (success) {
-      setIsAdminLoggedIn(true);
-      setCurrentView('admin');
+  const handleLogin = (success: boolean, role: string, userId?: string, userName?: string) => {
+    if (success && userId && userName) {
+      setIsAuthenticated(true);
+      setUserRole(role as UserRole);
+      setCurrentUserId(userId);
+      setCurrentUserName(userName);
+      
+      // Navigate to appropriate view based on role
+      switch (role) {
+        case 'admin':
+          setCurrentView('admin');
+          break;
+        case 'driver':
+        case 'helper':
+        case 'cleaner':
+          setCurrentView('driver');
+          break;
+        default:
+          setCurrentView('home');
+      }
     }
   };
 
-  const handleDriverLogin = (success: boolean, driverId?: string) => {
-    if (success && driverId) {
-      setIsDriverLoggedIn(true);
-      setCurrentDriverId(driverId);
-      setCurrentView('driver');
-    }
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentUserId('');
+    setCurrentUserName('');
+    setUserRole('customer');
+    setCurrentView('home');
   };
 
   return (
@@ -118,6 +159,9 @@ const Index = () => {
           setCurrentView={handleViewChange}
           userRole={userRole}
           onRoleChange={handleRoleChange}
+          isAuthenticated={isAuthenticated}
+          currentUserName={currentUserName}
+          onLogout={handleLogout}
         />
       </div>
 
@@ -129,6 +173,7 @@ const Index = () => {
             onTrackOrder={() => setCurrentView('track')}
             onApplyJobs={() => setCurrentView('apply-jobs')}
             onHelp={() => setCurrentView('help')}
+            onTerms={() => setCurrentView('terms')}
           />
         )}
         
@@ -154,33 +199,34 @@ const Index = () => {
           />
         )}
 
-        {currentView === 'admin-login' && (
-          <AdminLogin 
-            onLogin={handleAdminLogin}
-            onBack={() => setCurrentView('home')}
-          />
-        )}
-
-        {currentView === 'driver-login' && (
-          <DriverLogin 
-            onLogin={handleDriverLogin}
+        {currentView === 'unified-login' && (
+          <UnifiedLogin 
+            onLogin={handleLogin}
             onBack={() => setCurrentView('home')}
           />
         )}
         
-        {currentView === 'driver' && isDriverLoggedIn && (
+        {currentView === 'driver' && isAuthenticated && (
           <DriverView 
-            orders={orders.filter(o => o.assignedDriver === currentDriverId)}
+            orders={orders.filter(o => 
+              o.assignedDriver === currentUserId || 
+              (userRole === 'admin' && true) ||
+              (userRole === 'helper' && o.services.helpers > 0) ||
+              (userRole === 'cleaner' && o.services.cleaning)
+            )}
             onUpdateOrder={(orderId, status) => {
               setOrders(prev => prev.map(o => 
                 o.id === orderId ? { ...o, status } : o
               ));
             }}
-            driverId={currentDriverId}
+            driverId={currentUserId}
+            userName={currentUserName}
+            userRole={userRole}
+            onLogout={handleLogout}
           />
         )}
         
-        {currentView === 'admin' && isAdminLoggedIn && (
+        {currentView === 'admin' && isAuthenticated && userRole === 'admin' && (
           <AdminPanel 
             orders={orders}
             jobApplications={jobApplications}
@@ -194,6 +240,8 @@ const Index = () => {
                 app.id === applicationId ? { ...app, status } : app
               ));
             }}
+            availableDrivers={availableDrivers}
+            onLogout={handleLogout}
           />
         )}
 
@@ -209,6 +257,12 @@ const Index = () => {
             onBack={() => setCurrentView('home')}
           />
         )}
+
+        {currentView === 'terms' && (
+          <TermsAndConditions 
+            onBack={() => setCurrentView('home')}
+          />
+        )}
       </div>
 
       {/* Mobile Bottom Navigation */}
@@ -218,6 +272,8 @@ const Index = () => {
           setCurrentView={handleViewChange}
           userRole={userRole}
           onRoleChange={handleRoleChange}
+          isAuthenticated={isAuthenticated}
+          onLogout={handleLogout}
         />
       </div>
     </div>

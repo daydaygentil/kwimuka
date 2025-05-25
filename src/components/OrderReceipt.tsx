@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { ArrowLeft, Printer, Search, CheckCircle } from "lucide-react";
 import { Order } from "@/pages/Index";
+import OrderStatusTracker from "@/components/OrderStatusTracker";
 
 interface OrderReceiptProps {
   order: Order;
@@ -56,13 +56,27 @@ const OrderReceipt = ({ order, onBack, onTrackOrder }: OrderReceiptProps) => {
             <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
             <div>
               <h2 className="text-lg font-semibold text-green-800">Order Placed Successfully!</h2>
-              <p className="text-green-700">We'll contact you shortly to confirm details.</p>
+              <p className="text-green-700">
+                {order.assignedDriverName 
+                  ? `Driver ${order.assignedDriverName} has been assigned to your order.`
+                  : "We'll contact you shortly to confirm details."
+                }
+              </p>
             </div>
           </div>
         </div>
 
+        {/* Order Status Tracker */}
+        <div className="mb-6">
+          <OrderStatusTracker 
+            status={order.status}
+            assignedDriver={order.assignedDriverName}
+            driverPhone={order.assignedDriverPhone}
+          />
+        </div>
+
         {/* Receipt */}
-        <div className="bg-white p-6 rounded-xl shadow-sm print:shadow-none">
+        <div className="bg-white p-6 rounded-xl shadow-sm print:shadow-none mb-6">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">EasyMove</h2>
             <p className="text-gray-600">Moving Services Receipt</p>
@@ -156,25 +170,16 @@ const OrderReceipt = ({ order, onBack, onTrackOrder }: OrderReceiptProps) => {
           </div>
 
           {/* Total */}
-          <div className="border-t pt-4 mb-6">
+          <div className="border-t pt-4">
             <div className="flex justify-between items-center">
               <span className="text-xl font-bold text-gray-900">Total Amount</span>
               <span className="text-xl font-bold text-green-600">{order.totalCost.toLocaleString()} RWF</span>
             </div>
           </div>
-
-          {/* Status */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Order Status</h3>
-            <div className="flex items-center">
-              <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-              <span className="font-medium capitalize">{order.status}</span>
-            </div>
-          </div>
         </div>
 
         {/* Order Tracking */}
-        <div className="bg-white p-6 rounded-xl shadow-sm mt-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm">
           <h3 className="font-semibold text-gray-900 mb-4">Track Your Order</h3>
           <div className="flex space-x-3">
             <input

@@ -1,5 +1,5 @@
 
-import { Home, Plus, Truck, Settings, Search, HelpCircle } from "lucide-react";
+import { Home, Plus, Truck, Settings, Search, HelpCircle, LogOut, LogIn, User } from "lucide-react";
 import { UserRole } from "@/pages/Index";
 
 interface MobileBottomNavProps {
@@ -7,9 +7,18 @@ interface MobileBottomNavProps {
   setCurrentView: (view: string) => void;
   userRole: UserRole;
   onRoleChange: (role: UserRole) => void;
+  isAuthenticated?: boolean;
+  onLogout?: () => void;
 }
 
-const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }: MobileBottomNavProps) => {
+const MobileBottomNav = ({ 
+  currentView, 
+  setCurrentView, 
+  userRole, 
+  onRoleChange,
+  isAuthenticated = false,
+  onLogout
+}: MobileBottomNavProps) => {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
       <div className="flex justify-around items-center">
@@ -25,7 +34,7 @@ const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }
           <span className="text-xs font-medium">Home</span>
         </button>
 
-        {userRole === 'customer' && (
+        {(!isAuthenticated || userRole === 'customer') && (
           <>
             <button
               onClick={() => setCurrentView('order')}
@@ -53,7 +62,7 @@ const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }
           </>
         )}
 
-        {userRole === 'driver' && (
+        {isAuthenticated && (userRole === 'driver' || userRole === 'helper' || userRole === 'cleaner') && (
           <button
             onClick={() => setCurrentView('driver')}
             className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
@@ -67,7 +76,7 @@ const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }
           </button>
         )}
 
-        {userRole === 'admin' && (
+        {isAuthenticated && userRole === 'admin' && (
           <button
             onClick={() => setCurrentView('admin')}
             className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
@@ -93,23 +102,24 @@ const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }
           <span className="text-xs font-medium">Help</span>
         </button>
 
-        {/* Role Switcher */}
-        <button
-          onClick={() => {
-            const roles: UserRole[] = ['customer', 'driver', 'admin'];
-            const currentIndex = roles.indexOf(userRole);
-            const nextRole = roles[(currentIndex + 1) % roles.length];
-            onRoleChange(nextRole);
-          }}
-          className="flex flex-col items-center py-2 px-3 rounded-lg text-gray-500"
-        >
-          <div className="h-5 w-5 mb-1 rounded-full bg-gray-300 flex items-center justify-center">
-            <span className="text-xs font-bold text-white">
-              {userRole === 'customer' ? 'C' : userRole === 'driver' ? 'D' : 'A'}
-            </span>
-          </div>
-          <span className="text-xs font-medium">Role</span>
-        </button>
+        {/* Authentication Button */}
+        {isAuthenticated ? (
+          <button
+            onClick={onLogout}
+            className="flex flex-col items-center py-2 px-3 rounded-lg text-red-500"
+          >
+            <LogOut className="h-5 w-5 mb-1" />
+            <span className="text-xs font-medium">Logout</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setCurrentView('unified-login')}
+            className="flex flex-col items-center py-2 px-3 rounded-lg text-gray-500"
+          >
+            <LogIn className="h-5 w-5 mb-1" />
+            <span className="text-xs font-medium">Login</span>
+          </button>
+        )}
       </div>
     </div>
   );
