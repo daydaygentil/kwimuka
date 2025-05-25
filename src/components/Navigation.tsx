@@ -1,6 +1,6 @@
 
-import { Truck, User, Settings } from "lucide-react";
-import { UserRole } from "@/pages/Index";
+import { Truck, User, Settings, HelpCircle } from "lucide-react";
+import { UserRole, ViewType } from "@/pages/Index";
 
 interface NavigationProps {
   currentView: string;
@@ -34,17 +34,41 @@ const Navigation = ({ currentView, setCurrentView, userRole, onRoleChange }: Nav
             </button>
 
             {userRole === 'customer' && (
-              <button
-                onClick={() => setCurrentView('order')}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  currentView === 'order' 
-                    ? 'text-green-600 bg-green-50' 
-                    : 'text-gray-700 hover:text-green-600'
-                }`}
-              >
-                Place Order
-              </button>
+              <>
+                <button
+                  onClick={() => setCurrentView('order')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === 'order' 
+                      ? 'text-green-600 bg-green-50' 
+                      : 'text-gray-700 hover:text-green-600'
+                  }`}
+                >
+                  Place Order
+                </button>
+                <button
+                  onClick={() => setCurrentView('track')}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    currentView === 'track' 
+                      ? 'text-green-600 bg-green-50' 
+                      : 'text-gray-700 hover:text-green-600'
+                  }`}
+                >
+                  Track Order
+                </button>
+              </>
             )}
+
+            <button
+              onClick={() => setCurrentView('help')}
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                currentView === 'help' 
+                  ? 'text-green-600 bg-green-50' 
+                  : 'text-gray-700 hover:text-green-600'
+              }`}
+            >
+              <HelpCircle className="h-4 w-4 inline mr-1" />
+              Help
+            </button>
 
             {/* Role Selector */}
             <div className="flex items-center space-x-2">

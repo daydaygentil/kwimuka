@@ -1,5 +1,5 @@
 
-import { Home, Plus, Truck, Settings } from "lucide-react";
+import { Home, Plus, Truck, Settings, Search, HelpCircle } from "lucide-react";
 import { UserRole } from "@/pages/Index";
 
 interface MobileBottomNavProps {
@@ -26,17 +26,31 @@ const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }
         </button>
 
         {userRole === 'customer' && (
-          <button
-            onClick={() => setCurrentView('order')}
-            className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-              currentView === 'order' 
-                ? 'text-green-600 bg-green-50' 
-                : 'text-gray-500'
-            }`}
-          >
-            <Plus className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Order</span>
-          </button>
+          <>
+            <button
+              onClick={() => setCurrentView('order')}
+              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+                currentView === 'order' 
+                  ? 'text-green-600 bg-green-50' 
+                  : 'text-gray-500'
+              }`}
+            >
+              <Plus className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">Order</span>
+            </button>
+
+            <button
+              onClick={() => setCurrentView('track')}
+              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+                currentView === 'track' 
+                  ? 'text-green-600 bg-green-50' 
+                  : 'text-gray-500'
+              }`}
+            >
+              <Search className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">Track</span>
+            </button>
+          </>
         )}
 
         {userRole === 'driver' && (
@@ -66,6 +80,18 @@ const MobileBottomNav = ({ currentView, setCurrentView, userRole, onRoleChange }
             <span className="text-xs font-medium">Admin</span>
           </button>
         )}
+
+        <button
+          onClick={() => setCurrentView('help')}
+          className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+            currentView === 'help' 
+              ? 'text-green-600 bg-green-50' 
+              : 'text-gray-500'
+          }`}
+        >
+          <HelpCircle className="h-5 w-5 mb-1" />
+          <span className="text-xs font-medium">Help</span>
+        </button>
 
         {/* Role Switcher */}
         <button

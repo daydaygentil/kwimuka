@@ -1,11 +1,14 @@
 
-import { Truck, Users, Sparkles, Key, ArrowRight, Phone, MapPin } from "lucide-react";
+import { Truck, Users, Sparkles, Key, ArrowRight, Phone, MapPin, Search, Briefcase } from "lucide-react";
 
 interface HomepageProps {
   onPlaceOrder: () => void;
+  onTrackOrder: () => void;
+  onApplyJobs: () => void;
+  onHelp: () => void;
 }
 
-const Homepage = ({ onPlaceOrder }: HomepageProps) => {
+const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp }: HomepageProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
       {/* Hero Section */}
@@ -27,13 +30,60 @@ const Homepage = ({ onPlaceOrder }: HomepageProps) => {
             Get instant quotes and book trusted helpers today.
           </p>
 
-          <button
-            onClick={onPlaceOrder}
-            className="bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center mx-auto"
-          >
-            Place an Order
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <button
+              onClick={onPlaceOrder}
+              className="bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+            >
+              Place an Order
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </button>
+
+            <button
+              onClick={onTrackOrder}
+              className="bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+            >
+              Track Order
+              <Search className="ml-2 h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={onApplyJobs}
+              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left"
+            >
+              <div className="flex items-center">
+                <div className="bg-blue-100 p-3 rounded-lg">
+                  <Briefcase className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="font-semibold text-gray-900">Apply for Jobs</h3>
+                  <p className="text-gray-600 text-sm">Join our team of helpers and drivers</p>
+                </div>
+              </div>
+            </button>
+
+            <button
+              onClick={onHelp}
+              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left"
+            >
+              <div className="flex items-center">
+                <div className="bg-purple-100 p-3 rounded-lg">
+                  <Phone className="h-6 w-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <h3 className="font-semibold text-gray-900">Need Help?</h3>
+                  <p className="text-gray-600 text-sm">Get support and FAQs</p>
+                </div>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -79,38 +129,6 @@ const Homepage = ({ onPlaceOrder }: HomepageProps) => {
               <h3 className="font-semibold text-gray-900 mb-2">Key Delivery</h3>
               <p className="text-gray-600 text-sm mb-3">Secure key handover service</p>
               <p className="font-bold text-green-600">5,000 RWF</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Job Opportunities Section */}
-      <div className="px-4 py-16 bg-green-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-            Apply for Jobs
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Join our team of trusted helpers and cleaners. Earn money while helping your community.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-              <Users className="h-8 w-8 text-green-600 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 mb-2">Moving Helper</h3>
-              <p className="text-gray-600 text-sm mb-4">Help customers with packing and moving</p>
-              <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                Apply Now
-              </button>
-            </div>
-            
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-              <Sparkles className="h-8 w-8 text-green-600 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 mb-2">Cleaner</h3>
-              <p className="text-gray-600 text-sm mb-4">Provide professional cleaning services</p>
-              <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
-                Apply Now
-              </button>
             </div>
           </div>
         </div>

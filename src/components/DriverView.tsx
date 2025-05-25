@@ -1,13 +1,14 @@
 
-import { MapPin, Clock, DollarSign, CheckCircle } from "lucide-react";
+import { MapPin, Clock, DollarSign, CheckCircle, Printer } from "lucide-react";
 import { Order, OrderStatus } from "@/pages/Index";
 
 interface DriverViewProps {
   orders: Order[];
+  driverId: string;
   onUpdateOrder: (orderId: string, status: OrderStatus) => void;
 }
 
-const DriverView = ({ orders, onUpdateOrder }: DriverViewProps) => {
+const DriverView = ({ orders, driverId, onUpdateOrder }: DriverViewProps) => {
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -34,12 +35,57 @@ const DriverView = ({ orders, onUpdateOrder }: DriverViewProps) => {
     }
   };
 
+  const printDriverReport = () => {
+    const completedOrders = orders.filter(order => order.status === 'completed');
+    const totalEarnings = completedOrders.reduce((sum, order) => sum + order.totalCost, 0);
+    
+    const reportContent = `
+      Driver Report - ${driverId}
+      Generated: ${new Date().toLocaleDateString()}
+      
+      Summary:
+      - Total Jobs: ${orders.length}
+      - Completed Jobs: ${completedOrders.length}
+      - Total Earnings: ${totalEarnings.toLocaleString()} RWF
+      
+      Job Details:
+      ${orders.map(order => `
+      Order #${order.id}
+      Customer: ${order.customerName}
+      From: ${order.pickupAddress}
+      To: ${order.deliveryAddress}
+      Status: ${order.status}
+      Amount: ${order.totalCost.toLocaleString()} RWF
+      Date: ${order.createdAt.toLocaleDateString()}
+      ---
+      `).join('')}
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`<pre>${reportContent}</pre>`);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
-          <p className="text-gray-600">Manage your assigned moving jobs</p>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Jobs</h1>
+            <p className="text-gray-600">Manage your assigned moving jobs</p>
+          </div>
+          {orders.length > 0 && (
+            <button
+              onClick={printDriverReport}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print Report
+            </button>
+          )}
         </div>
 
         {orders.length === 0 ? (
