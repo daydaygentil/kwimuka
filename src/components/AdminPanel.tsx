@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Order, OrderStatus, JobApplication } from "@/pages/Index";
 import { Search, Filter, DollarSign, Users, Truck, FileText, Printer } from "lucide-react";
@@ -8,22 +7,23 @@ interface AdminPanelProps {
   jobApplications: JobApplication[];
   onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
   onUpdateJobApplication: (applicationId: string, status: 'pending' | 'approved' | 'rejected') => void;
+  availableDrivers: { id: string; name: string; phone: string }[];
+  onLogout: () => void;
 }
 
-const AdminPanel = ({ orders, jobApplications, onUpdateOrder, onUpdateJobApplication }: AdminPanelProps) => {
+const AdminPanel = ({ 
+  orders, 
+  jobApplications, 
+  onUpdateOrder, 
+  onUpdateJobApplication, 
+  availableDrivers, 
+  onLogout 
+}: AdminPanelProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [activeTab, setActiveTab] = useState<'orders' | 'applications'>('orders');
 
-  const drivers = [
-    'driver1',
-    'driver2',
-    'driver3',
-    'John Doe',
-    'Jane Smith',
-    'Mike Johnson',
-    'Sarah Wilson'
-  ];
+  const drivers = availableDrivers.map(driver => driver.name);
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,13 +92,21 @@ const AdminPanel = ({ orders, jobApplications, onUpdateOrder, onUpdateJobApplica
             <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
             <p className="text-gray-600">Manage orders, drivers, and track performance</p>
           </div>
-          <button
-            onClick={printReport}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
-          >
-            <Printer className="h-4 w-4 mr-2" />
-            Print Report
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={printReport}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print Report
+            </button>
+            <button
+              onClick={onLogout}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -275,10 +283,15 @@ const AdminPanel = ({ orders, jobApplications, onUpdateOrder, onUpdateJobApplica
                         <td className="px-6 py-4 whitespace-nowrap">
                           <select
                             value={order.assignedDriver || ''}
-                            onChange={(e) => onUpdateOrder(order.id, { 
-                              assignedDriver: e.target.value,
-                              status: e.target.value ? 'assigned' : 'pending'
-                            })}
+                            onChange={(e) => {
+                              const selectedDriver = availableDrivers.find(d => d.name === e.target.value);
+                              onUpdateOrder(order.id, { 
+                                assignedDriver: selectedDriver?.id || e.target.value,
+                                assignedDriverName: selectedDriver?.name || e.target.value,
+                                assignedDriverPhone: selectedDriver?.phone,
+                                status: e.target.value ? 'assigned' : 'pending'
+                              });
+                            }}
                             className="text-sm border border-gray-300 rounded px-2 py-1"
                           >
                             <option value="">Unassigned</option>

@@ -1,166 +1,199 @@
-
-import { Truck, Users, Sparkles, Key, ArrowRight, Phone, MapPin, Search, Briefcase } from "lucide-react";
+import { Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star } from "lucide-react";
 
 interface HomepageProps {
   onPlaceOrder: () => void;
   onTrackOrder: () => void;
   onApplyJobs: () => void;
   onHelp: () => void;
+  onTerms: () => void;
 }
 
-const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp }: HomepageProps) => {
+const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: HomepageProps) => {
+  const services = [
+    {
+      icon: Truck,
+      title: "Truck Transport",
+      description: "Professional moving trucks with experienced drivers",
+      price: "40,000 RWF"
+    },
+    {
+      icon: Users,
+      title: "Moving Helpers",
+      description: "Skilled workers to help with packing and loading",
+      price: "10,000 RWF each"
+    },
+    {
+      icon: Sparkles,
+      title: "Cleaning Service",
+      description: "Deep cleaning for your old and new location",
+      price: "5,000 RWF"
+    },
+    {
+      icon: Key,
+      title: "Key Delivery",
+      description: "Secure key handover service",
+      price: "5,000 RWF"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       {/* Hero Section */}
-      <div className="px-4 pt-8 md:pt-16">
+      <div className="px-4 py-8 md:py-16">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="flex justify-center mb-6">
-            <div className="bg-green-600 p-4 rounded-full">
-              <Truck className="h-12 w-12 text-white" />
-            </div>
+          <div className="flex items-center justify-center mb-6">
+            <Truck className="h-12 w-12 text-green-600 mr-3" />
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900">EasyMove</h1>
           </div>
           
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-            Fast & Easy Moving Services
-            <span className="block text-green-600">in Rwanda</span>
-          </h1>
+          <p className="text-xl md:text-2xl text-gray-600 mb-8">
+            Fast & Easy Moving Services in Rwanda
+          </p>
           
-          <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Professional moving, cleaning, and delivery services at your fingertips. 
-            Get instant quotes and book trusted helpers today.
+          <p className="text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
+            Professional moving services with real-time tracking, experienced drivers, 
+            and comprehensive support for all your relocation needs.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
             <button
               onClick={onPlaceOrder}
-              className="bg-green-600 hover:bg-green-700 text-white text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
             >
               Place an Order
-              <ArrowRight className="ml-2 h-5 w-5" />
             </button>
-
+            
             <button
               onClick={onTrackOrder}
-              className="bg-white hover:bg-gray-50 text-green-600 border-2 border-green-600 text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
             >
               Track Order
-              <Search className="ml-2 h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button
-              onClick={onApplyJobs}
-              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left"
-            >
-              <div className="flex items-center">
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <Briefcase className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="font-semibold text-gray-900">Apply for Jobs</h3>
-                  <p className="text-gray-600 text-sm">Join our team of helpers and drivers</p>
-                </div>
-              </div>
-            </button>
-
-            <button
-              onClick={onHelp}
-              className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow text-left"
-            >
-              <div className="flex items-center">
-                <div className="bg-purple-100 p-3 rounded-lg">
-                  <Phone className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="font-semibold text-gray-900">Need Help?</h3>
-                  <p className="text-gray-600 text-sm">Get support and FAQs</p>
-                </div>
-              </div>
             </button>
           </div>
         </div>
       </div>
 
       {/* Services Section */}
-      <div className="px-4 py-16">
+      <div className="px-4 py-16 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">
-            Our Services
-          </h2>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Our Services</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-blue-100 p-3 rounded-lg w-fit mb-4">
-                <Truck className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Truck Transport</h3>
-              <p className="text-gray-600 text-sm mb-3">Professional moving with our reliable trucks</p>
-              <p className="font-bold text-green-600">40,000 RWF</p>
-            </div>
+            {services.map((service, index) => {
+              const Icon = service.icon;
+              return (
+                <div key={index} className="bg-gray-50 p-6 rounded-xl hover:shadow-lg transition-shadow">
+                  <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
+                    <Icon className="h-6 w-6 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{service.title}</h3>
+                  <p className="text-gray-600 text-sm mb-3">{service.description}</p>
+                  <p className="text-green-600 font-semibold">{service.price}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-orange-100 p-3 rounded-lg w-fit mb-4">
-                <Users className="h-6 w-6 text-orange-600" />
+      {/* Features Section */}
+      <div className="px-4 py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Why Choose EasyMove?</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Moving Helpers</h3>
-              <p className="text-gray-600 text-sm mb-3">Experienced helpers to assist your move</p>
-              <p className="font-bold text-green-600">10,000 RWF/person</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Fast & Reliable</h3>
+              <p className="text-gray-600">Quick response times and dependable service you can count on.</p>
             </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-purple-100 p-3 rounded-lg w-fit mb-4">
-                <Sparkles className="h-6 w-6 text-purple-600" />
+            
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Cleaning Service</h3>
-              <p className="text-gray-600 text-sm mb-3">Deep cleaning for your old or new place</p>
-              <p className="font-bold text-green-600">5,000 RWF</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Real-time Tracking</h3>
+              <p className="text-gray-600">Track your order status and driver location in real-time.</p>
             </div>
-
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-              <div className="bg-green-100 p-3 rounded-lg w-fit mb-4">
-                <Key className="h-6 w-6 text-green-600" />
+            
+            <div className="text-center">
+              <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Key Delivery</h3>
-              <p className="text-gray-600 text-sm mb-3">Secure key handover service</p>
-              <p className="font-bold text-green-600">5,000 RWF</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Professional Team</h3>
+              <p className="text-gray-600">Experienced drivers and helpers trained for safe moving.</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Contact Section */}
-      <div className="px-4 py-16">
+      {/* Job Opportunities Section */}
+      <div className="px-4 py-16 bg-green-600">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
-            Need Help?
-          </h2>
+          <h2 className="text-3xl font-bold text-white mb-6">Join Our Team</h2>
+          <p className="text-green-100 text-lg mb-8">
+            Looking for work? Apply to become a driver, helper, or cleaner with EasyMove.
+          </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="flex items-center justify-center space-x-3">
-              <div className="bg-green-100 p-3 rounded-full">
-                <Phone className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Call Us</p>
-                <p className="text-green-600">+250 788 123 456</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-white bg-opacity-10 p-6 rounded-xl">
+              <Truck className="h-8 w-8 text-white mx-auto mb-3" />
+              <h3 className="font-semibold text-white mb-2">Drivers</h3>
+              <p className="text-green-100 text-sm">Drive our trucks and earn competitive rates</p>
             </div>
             
-            <div className="flex items-center justify-center space-x-3">
-              <div className="bg-green-100 p-3 rounded-full">
-                <MapPin className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Service Area</p>
-                <p className="text-green-600">All of Kigali</p>
-              </div>
+            <div className="bg-white bg-opacity-10 p-6 rounded-xl">
+              <Users className="h-8 w-8 text-white mx-auto mb-3" />
+              <h3 className="font-semibold text-white mb-2">Helpers</h3>
+              <p className="text-green-100 text-sm">Assist with loading and moving items</p>
             </div>
+            
+            <div className="bg-white bg-opacity-10 p-6 rounded-xl">
+              <Sparkles className="h-8 w-8 text-white mx-auto mb-3" />
+              <h3 className="font-semibold text-white mb-2">Cleaners</h3>
+              <p className="text-green-100 text-sm">Provide cleaning services for moves</p>
+            </div>
+          </div>
+          
+          <button
+            onClick={onApplyJobs}
+            className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold transition-colors"
+          >
+            Apply for Jobs
+          </button>
+        </div>
+      </div>
+
+      {/* Contact Section */}
+      <div className="px-4 py-16 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">Need Help?</h2>
+          <p className="text-gray-600 text-lg mb-8">
+            Have questions about our services or need assistance with your order?
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button
+              onClick={onHelp}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+            >
+              Get Help & FAQ
+            </button>
+            
+            <button
+              onClick={onTerms}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+            >
+              Terms & Conditions
+            </button>
+          </div>
+          
+          <div className="mt-8 flex items-center justify-center text-gray-600">
+            <Phone className="h-5 w-5 mr-2" />
+            <span>24/7 Support: +250 788 123 456</span>
           </div>
         </div>
       </div>
