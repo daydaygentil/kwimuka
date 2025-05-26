@@ -1,13 +1,14 @@
-
 import { useState } from "react";
 import { Lock, User, ArrowLeft, Shield } from "lucide-react";
 
 interface UnifiedLoginProps {
   onLogin: (success: boolean, userRole: string, userId?: string, userName?: string) => void;
   onBack: () => void;
+  onRegister?: () => void;
+  onForgotPassword?: () => void;
 }
 
-const UnifiedLogin = ({ onLogin, onBack }: UnifiedLoginProps) => {
+const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: UnifiedLoginProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("customer");
@@ -163,6 +164,33 @@ const UnifiedLogin = ({ onLogin, onBack }: UnifiedLoginProps) => {
               {loading ? "Logging in..." : "Login"}
             </button>
           </form>
+
+          <div className="mt-6 space-y-4">
+            {onForgotPassword && (
+              <div className="text-center">
+                <button
+                  onClick={onForgotPassword}
+                  className="text-green-600 hover:text-green-700 font-medium text-sm"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+            )}
+
+            {onRegister && (
+              <div className="text-center">
+                <p className="text-gray-600">
+                  Don't have an account?{" "}
+                  <button
+                    onClick={onRegister}
+                    className="text-green-600 hover:text-green-700 font-medium"
+                  >
+                    Create Account
+                  </button>
+                </p>
+              </div>
+            )}
+          </div>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 text-center mb-2">

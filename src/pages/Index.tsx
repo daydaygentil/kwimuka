@@ -14,10 +14,16 @@ import TermsAndConditions from "@/components/TermsAndConditions";
 import { Worker, JobAssignment, ServiceNotification, WorkerType } from '@/types/worker';
 import WorkerNotificationPanel from '@/components/WorkerNotificationPanel';
 import ServiceStatusTracker from '@/components/ServiceStatusTracker';
+import UserRegistration from "@/components/UserRegistration";
+import ForgotPassword from "@/components/ForgotPassword";
+import PaymentMethods from "@/components/PaymentMethods";
+import PriceBreakdown from "@/components/PriceBreakdown";
+import BudgetDriverFinder from "@/components/BudgetDriverFinder";
+import { UserAccount, SMSSettings } from '@/types/worker';
 
 export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
 export type OrderStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
-export type ViewType = 'home' | 'order' | 'receipt' | 'driver' | 'admin' | 'track' | 'unified-login' | 'apply-jobs' | 'help' | 'terms';
+export type ViewType = 'home' | 'order' | 'receipt' | 'driver' | 'admin' | 'track' | 'unified-login' | 'apply-jobs' | 'help' | 'terms' | 'register' | 'forgot-password';
 
 export interface Order {
   id: string;
@@ -193,8 +199,7 @@ const Index = () => {
     const availableWorkers = workers.filter(w => 
       w.type === workerType && 
       w.isAvailable && 
-      !notifications.some(n => n.workerId === w.id && n.jobAssignmentId === assignment.id)
-    );
+      !notifications.some(n => n.workerId === w.id && n.jobAssignmentId === assignment.id))
     
     if (availableWorkers.length > 0) {
       const nextWorker = availableWorkers[0];
@@ -348,6 +353,43 @@ const Index = () => {
     setCurrentView('home');
   };
 
+  const handleUserRegistration = (userData: { name: string; phone: string; password: string }) => {
+    const newUser: UserAccount = {
+      id: `user_${Date.now()}`,
+      name: userData.name,
+      phone: userData.phone,
+      password: userData.password,
+      role: 'customer',
+      createdAt: new Date()
+    };
+    
+    setUserAccounts(prev => [...prev, newUser]);
+    setCurrentView('unified-login');
+    console.log('User registered successfully');
+  };
+
+  const handleDriverConfirmation = (orderId: string, driverId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    const driver = workers.find(w => w.id === driverId);
+    
+    if (order && driver && smsSettings.isActive) {
+      const smsMessage = smsSettings.message
+        .replace('{driverName}', driver.name)
+        .replace('{customerPhone}', order.phoneNumber);
+      
+      // Simulate SMS sending
+      console.log(`SMS sent to ${order.phoneNumber}: ${smsMessage}`);
+    }
+  };
+
+  const handleSMSSettingsUpdate = (newMessage: string) => {
+    setSmsSettings(prev => ({
+      ...prev,
+      message: newMessage,
+      updatedAt: new Date()
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Desktop Navigation */}
@@ -406,10 +448,27 @@ const Index = () => {
           />
         )}
 
+        {currentView === 'register' && (
+          <UserRegistration 
+            onRegister={handleUserRegistration}
+            onBack={() => setCurrentView('home')}
+            onLoginClick={() => setCurrentView('unified-login')}
+          />
+        )}
+
+        {currentView === 'forgot-password' && (
+          <ForgotPassword 
+            onBack={() => setCurrentView('unified-login')}
+            onResetSuccess={() => setCurrentView('unified-login')}
+          />
+        )}
+
         {currentView === 'unified-login' && (
           <UnifiedLogin 
             onLogin={handleLogin}
             onBack={() => setCurrentView('home')}
+            onRegister={() => setCurrentView('register')}
+            onForgotPassword={() => setCurrentView('forgot-password')}
           />
         )}
         

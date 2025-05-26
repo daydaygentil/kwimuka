@@ -31,3 +31,20 @@ export interface ServiceNotification {
   createdAt: Date;
   expiresAt?: Date;
 }
+
+export interface UserAccount {
+  id: string;
+  name: string;
+  phone: string;
+  password: string;
+  role: 'customer' | 'admin' | 'driver' | 'helper' | 'cleaner';
+  createdAt: Date;
+}
+
+export interface SMSSettings {
+  id: string;
+  message: string;
+  isActive: boolean;
+  updatedBy: string;
+  updatedAt: Date;
+}
