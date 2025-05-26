@@ -1,6 +1,7 @@
 
 import { Truck, User, Settings, HelpCircle, LogOut, LogIn } from "lucide-react";
 import { UserRole, ViewType } from "@/pages/Index";
+import SocialShare from "@/components/SocialShare";
 
 interface NavigationProps {
   currentView: string;
@@ -25,13 +26,11 @@ const Navigation = ({
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <div className="flex items-center space-x-2">
             <Truck className="h-8 w-8 text-green-600" />
             <span className="text-xl font-bold text-gray-900">EasyMove</span>
           </div>
 
-          {/* Navigation Links */}
           <div className="flex items-center space-x-6">
             <button
               onClick={() => setCurrentView('home')}
@@ -107,7 +106,8 @@ const Navigation = ({
               Help
             </button>
 
-            {/* User Authentication Section */}
+            <SocialShare />
+
             <div className="flex items-center space-x-3 border-l pl-3">
               {isAuthenticated ? (
                 <>

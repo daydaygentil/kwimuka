@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Lock, User, ArrowLeft, Shield } from "lucide-react";
 
@@ -6,36 +7,14 @@ interface UnifiedLoginProps {
   onBack: () => void;
   onRegister?: () => void;
   onForgotPassword?: () => void;
+  userAccounts: any[];
 }
 
-const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: UnifiedLoginProps) => {
+const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword, userAccounts }: UnifiedLoginProps) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState<string>("customer");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Mock user database with different roles
-  const users = [
-    // Admin users
-    { id: "admin1", username: "admin", password: "admin123", role: "admin", name: "Admin User" },
-    
-    // Driver users
-    { id: "driver1", username: "john", password: "john123", role: "driver", name: "John Doe" },
-    { id: "driver2", username: "jane", password: "jane123", role: "driver", name: "Jane Smith" },
-    { id: "driver3", username: "mike", password: "mike123", role: "driver", name: "Mike Johnson" },
-    
-    // Helper users
-    { id: "helper1", username: "helper1", password: "helper123", role: "helper", name: "Helper One" },
-    { id: "helper2", username: "helper2", password: "helper123", role: "helper", name: "Helper Two" },
-    
-    // Cleaner users
-    { id: "cleaner1", username: "cleaner1", password: "cleaner123", role: "cleaner", name: "Cleaner One" },
-    { id: "cleaner2", username: "cleaner2", password: "cleaner123", role: "cleaner", name: "Cleaner Two" },
-    
-    // Customer users
-    { id: "customer1", username: "customer", password: "customer123", role: "customer", name: "Customer User" }
-  ];
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,39 +22,18 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: Unified
     setError("");
 
     setTimeout(() => {
-      const user = users.find(u => 
-        u.username === username && 
-        u.password === password && 
-        u.role === selectedRole
+      // Check against userAccounts for real users
+      const user = userAccounts.find(u => 
+        u.phone === username && u.password === password
       );
       
       if (user) {
         onLogin(true, user.role, user.id, user.name);
       } else {
-        setError("Invalid username, password, or role selection");
+        setError("Invalid username or password");
       }
       setLoading(false);
     }, 1000);
-  };
-
-  const getRoleIcon = () => {
-    switch (selectedRole) {
-      case "admin": return <Shield className="h-8 w-8 text-green-600" />;
-      case "driver": return <User className="h-8 w-8 text-blue-600" />;
-      case "helper": return <User className="h-8 w-8 text-orange-600" />;
-      case "cleaner": return <User className="h-8 w-8 text-purple-600" />;
-      default: return <User className="h-8 w-8 text-gray-600" />;
-    }
-  };
-
-  const getRoleColor = () => {
-    switch (selectedRole) {
-      case "admin": return "bg-green-100";
-      case "driver": return "bg-blue-100";
-      case "helper": return "bg-orange-100";
-      case "cleaner": return "bg-purple-100";
-      default: return "bg-gray-100";
-    }
   };
 
   return (
@@ -91,8 +49,8 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: Unified
 
         <div className="bg-white p-8 rounded-xl shadow-sm">
           <div className="text-center mb-6">
-            <div className={`${getRoleColor()} p-3 rounded-full w-fit mx-auto mb-4`}>
-              {getRoleIcon()}
+            <div className="bg-green-100 p-3 rounded-full w-fit mx-auto mb-4">
+              <Shield className="h-8 w-8 text-green-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Login to EasyMove</h1>
             <p className="text-gray-600">Access your dashboard</p>
@@ -101,24 +59,7 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: Unified
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Role
-              </label>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                <option value="customer">Customer</option>
-                <option value="driver">Driver</option>
-                <option value="helper">Moving Helper</option>
-                <option value="cleaner">Cleaner</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Username
+                Phone Number
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -126,7 +67,7 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: Unified
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter username"
+                  placeholder="Enter phone number"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 />
@@ -190,19 +131,6 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword }: Unified
                 </p>
               </div>
             )}
-          </div>
-
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 text-center mb-2">
-              <strong>Demo Accounts:</strong>
-            </p>
-            <div className="space-y-1 text-xs text-gray-600">
-              <p><strong>Admin:</strong> admin / admin123</p>
-              <p><strong>Driver:</strong> john / john123</p>
-              <p><strong>Helper:</strong> helper1 / helper123</p>
-              <p><strong>Cleaner:</strong> cleaner1 / cleaner123</p>
-              <p><strong>Customer:</strong> customer / customer123</p>
-            </div>
           </div>
         </div>
       </div>

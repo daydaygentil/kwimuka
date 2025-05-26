@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Order, OrderStatus, JobApplication } from "@/pages/Index";
-import { Search, Filter, DollarSign, Users, Truck, FileText, Printer } from "lucide-react";
-import { JobAssignment, Worker, ServiceNotification } from '@/types/worker';
+import { Search, Filter, DollarSign, Users, Truck, FileText, Printer, Settings as SettingsIcon } from "lucide-react";
+import { JobAssignment, Worker, ServiceNotification, UserAccount } from '@/types/worker';
 import ServiceStatusTracker from '@/components/ServiceStatusTracker';
+import ReportsPanel from '@/components/ReportsPanel';
+import AdminSettings from '@/components/AdminSettings';
+import SocialShare from '@/components/SocialShare';
 
 interface AdminPanelProps {
   orders: Order[];
@@ -10,8 +13,10 @@ interface AdminPanelProps {
   jobAssignments: JobAssignment[];
   workers: Worker[];
   notifications: ServiceNotification[];
+  userAccounts: UserAccount[];
   onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
   onUpdateJobApplication: (applicationId: string, status: 'pending' | 'approved' | 'rejected') => void;
+  onUpdateUserAccounts: (accounts: UserAccount[]) => void;
   availableDrivers: { id: string; name: string; phone: string }[];
   onLogout: () => void;
 }
@@ -22,14 +27,16 @@ const AdminPanel = ({
   jobAssignments,
   workers,
   notifications,
+  userAccounts,
   onUpdateOrder, 
   onUpdateJobApplication, 
+  onUpdateUserAccounts,
   availableDrivers, 
   onLogout 
 }: AdminPanelProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [activeTab, setActiveTab] = useState<'orders' | 'applications' | 'workers'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'applications' | 'workers' | 'reports' | 'settings'>('orders');
 
   const drivers = availableDrivers.map(driver => driver.name);
 
@@ -102,6 +109,14 @@ const AdminPanel = ({
     }
   };
 
+  const handleSendSMS = (phone: string, message: string) => {
+    console.log(`SMS sent to ${phone}: ${message}`);
+  };
+
+  const handleSendNotification = (userId: string, message: string, type: 'email' | 'push' | 'sms') => {
+    console.log(`${type} notification sent to user ${userId}: ${message}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="max-w-7xl mx-auto">
@@ -111,6 +126,7 @@ const AdminPanel = ({
             <p className="text-gray-600">Manage orders, drivers, and track performance</p>
           </div>
           <div className="flex space-x-3">
+            <SocialShare />
             <button
               onClick={printReport}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
@@ -223,6 +239,27 @@ const AdminPanel = ({
                 }`}
               >
                 Workers ({workers.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('reports')}
+                className={`py-4 border-b-2 font-medium text-sm ${
+                  activeTab === 'reports'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Reports
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`py-4 border-b-2 font-medium text-sm ${
+                  activeTab === 'settings'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <SettingsIcon className="h-4 w-4 inline mr-1" />
+                Settings
               </button>
             </nav>
           </div>
@@ -466,6 +503,28 @@ const AdminPanel = ({
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'reports' && (
+            <div className="p-6">
+              <ReportsPanel 
+                orders={orders}
+                jobAssignments={jobAssignments}
+                workers={workers}
+                userAccounts={userAccounts}
+              />
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="p-6">
+              <AdminSettings
+                userAccounts={userAccounts}
+                onUpdateUserAccounts={onUpdateUserAccounts}
+                onSendSMS={handleSendSMS}
+                onSendNotification={handleSendNotification}
+              />
             </div>
           )}
         </div>

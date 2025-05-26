@@ -19,6 +19,7 @@ import ForgotPassword from "@/components/ForgotPassword";
 import PaymentMethods from "@/components/PaymentMethods";
 import PriceBreakdown from "@/components/PriceBreakdown";
 import BudgetDriverFinder from "@/components/BudgetDriverFinder";
+import SocialShare from "@/components/SocialShare";
 import { UserAccount, SMSSettings } from '@/types/worker';
 
 export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
@@ -84,21 +85,15 @@ const Index = () => {
     updatedBy: 'admin',
     updatedAt: new Date()
   });
+  
   const [workers, setWorkers] = useState<Worker[]>([
-    // Drivers
     { id: 'driver1', name: 'John Doe', phone: '+250 788 123 001', type: 'driver', isAvailable: true, currentJobs: [] },
     { id: 'driver2', name: 'Jane Smith', phone: '+250 788 123 002', type: 'driver', isAvailable: true, currentJobs: [] },
     { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003', type: 'driver', isAvailable: true, currentJobs: [] },
-    
-    // Helpers
     { id: 'helper1', name: 'Paul Helper', phone: '+250 788 123 004', type: 'helper', isAvailable: true, currentJobs: [] },
     { id: 'helper2', name: 'Mary Helper', phone: '+250 788 123 005', type: 'helper', isAvailable: true, currentJobs: [] },
-    
-    // Cleaners
     { id: 'cleaner1', name: 'Alice Cleaner', phone: '+250 788 123 006', type: 'cleaner', isAvailable: true, currentJobs: [] },
     { id: 'cleaner2', name: 'Bob Cleaner', phone: '+250 788 123 007', type: 'cleaner', isAvailable: true, currentJobs: [] },
-    
-    // Delivery workers
     { id: 'delivery1', name: 'Sam Delivery', phone: '+250 788 123 008', type: 'delivery', isAvailable: true, currentJobs: [] },
     { id: 'delivery2', name: 'Lisa Delivery', phone: '+250 788 123 009', type: 'delivery', isAvailable: true, currentJobs: [] },
   ]);
@@ -106,7 +101,6 @@ const Index = () => {
   const [jobAssignments, setJobAssignments] = useState<JobAssignment[]>([]);
   const [notifications, setNotifications] = useState<ServiceNotification[]>([]);
 
-  // Mock drivers data for assignment
   const availableDrivers = [
     { id: 'driver1', name: 'John Doe', phone: '+250 788 123 001' },
     { id: 'driver2', name: 'Jane Smith', phone: '+250 788 123 002' },
@@ -166,7 +160,7 @@ const Index = () => {
       const availableWorkers = workers.filter(w => w.type === workerType && w.isAvailable);
       
       if (availableWorkers.length > 0) {
-        const selectedWorker = availableWorkers[0]; // Select first available worker
+        const selectedWorker = availableWorkers[0];
         
         const notification: ServiceNotification = {
           id: `notif-${assignment.id}-${Date.now()}`,
@@ -175,15 +169,14 @@ const Index = () => {
           message: `New ${assignment.serviceType} job available. Accept now.`,
           type: 'job_offer',
           createdAt: new Date(),
-          expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000)
         };
         
         newNotifications.push(notification);
         
-        // Set timeout for job reassignment
         setTimeout(() => {
           handleJobTimeout(assignment.id);
-        }, 10 * 60 * 1000); // 10 minutes
+        }, 10 * 60 * 1000);
       }
     });
     
@@ -194,12 +187,10 @@ const Index = () => {
     setJobAssignments(prev => {
       const assignment = prev.find(a => a.id === assignmentId);
       if (assignment && assignment.status === 'pending') {
-        // Remove expired notification
         setNotifications(prevNotifs => 
           prevNotifs.filter(n => n.jobAssignmentId !== assignmentId)
         );
         
-        // Try to assign to next available worker
         reassignJob(assignment);
         
         return prev;
@@ -247,7 +238,6 @@ const Index = () => {
     setJobAssignments(prev => [...prev, ...assignments]);
     setCurrentOrder(order);
     
-    // Notify workers about new jobs
     notifyWorkers(assignments);
     
     setCurrentView('receipt');
@@ -272,17 +262,14 @@ const Index = () => {
         : assignment
     ));
     
-    // Remove job offer notifications for this job
     setNotifications(prev => prev.filter(n => n.jobAssignmentId !== jobId));
     
-    // Update worker availability
     setWorkers(prev => prev.map(w => 
       w.id === worker.id 
         ? { ...w, currentJobs: [...w.currentJobs, jobId] }
         : w
     ));
     
-    // Notify user about job acceptance
     const assignment = jobAssignments.find(a => a.id === jobId);
     if (assignment) {
       console.log(`Your ${assignment.serviceType} was accepted by ${worker.name}.`);
@@ -290,10 +277,8 @@ const Index = () => {
   };
 
   const handleDeclineJob = (jobId: string) => {
-    // Remove the declined notification
     setNotifications(prev => prev.filter(n => n.jobAssignmentId !== jobId));
     
-    // Try to reassign to another worker
     const assignment = jobAssignments.find(a => a.id === jobId);
     if (assignment) {
       setTimeout(() => reassignJob(assignment), 1000);
@@ -327,7 +312,6 @@ const Index = () => {
   };
 
   const handleViewChange = (view: string) => {
-    // Check if view requires authentication
     const protectedViews = ['driver', 'admin'];
     if (protectedViews.includes(view) && !isAuthenticated) {
       setCurrentView('unified-login');
@@ -347,7 +331,6 @@ const Index = () => {
       setCurrentUserId(userId);
       setCurrentUserName(userName);
       
-      // Navigate to appropriate view based on role
       switch (role) {
         case 'admin':
           setCurrentView('admin');
@@ -395,7 +378,6 @@ const Index = () => {
         .replace('{driverName}', driver.name)
         .replace('{customerPhone}', order.phoneNumber);
       
-      // Simulate SMS sending
       console.log(`SMS sent to ${order.phoneNumber}: ${smsMessage}`);
     }
   };
@@ -410,7 +392,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Desktop Navigation */}
       <div className="hidden md:block">
         <Navigation 
           currentView={currentView} 
@@ -423,16 +404,22 @@ const Index = () => {
         />
       </div>
 
-      {/* Main Content */}
       <div className="pb-20 md:pb-0">
         {currentView === 'home' && (
-          <Homepage 
-            onPlaceOrder={() => setCurrentView('order')}
-            onTrackOrder={() => setCurrentView('track')}
-            onApplyJobs={() => setCurrentView('apply-jobs')}
-            onHelp={() => setCurrentView('help')}
-            onTerms={() => setCurrentView('terms')}
-          />
+          <div>
+            <Homepage 
+              onPlaceOrder={() => setCurrentView('order')}
+              onTrackOrder={() => setCurrentView('track')}
+              onApplyJobs={() => setCurrentView('apply-jobs')}
+              onHelp={() => setCurrentView('help')}
+              onTerms={() => setCurrentView('terms')}
+            />
+            <div className="max-w-7xl mx-auto px-4 py-6">
+              <div className="flex justify-center">
+                <SocialShare />
+              </div>
+            </div>
+          </div>
         )}
         
         {currentView === 'order' && (
@@ -496,6 +483,7 @@ const Index = () => {
             onBack={() => setCurrentView('home')}
             onRegister={() => setCurrentView('register')}
             onForgotPassword={() => setCurrentView('forgot-password')}
+            userAccounts={userAccounts}
           />
         )}
         
@@ -523,7 +511,6 @@ const Index = () => {
                   o.id === orderId ? { ...o, status } : o
                 ));
                 
-                // Update job assignment status
                 setJobAssignments(prev => prev.map(ja => 
                   ja.orderId === orderId && ja.assignedWorker?.id === currentUserId
                     ? { ...ja, status: status === 'completed' ? 'completed' : 'in-progress' }
@@ -545,6 +532,7 @@ const Index = () => {
             jobAssignments={jobAssignments}
             workers={workers}
             notifications={notifications}
+            userAccounts={userAccounts}
             onUpdateOrder={(orderId, updates) => {
               setOrders(prev => prev.map(o => 
                 o.id === orderId ? { ...o, ...updates } : o
@@ -555,6 +543,7 @@ const Index = () => {
                 app.id === applicationId ? { ...app, status } : app
               ));
             }}
+            onUpdateUserAccounts={setUserAccounts}
             availableDrivers={availableDrivers}
             onLogout={handleLogout}
           />
@@ -580,7 +569,6 @@ const Index = () => {
         )}
       </div>
 
-      {/* Mobile Bottom Navigation */}
       <div className="md:hidden">
         <MobileBottomNav 
           currentView={currentView}
