@@ -1,14 +1,24 @@
-
-import { useState } from "react";
-import { ArrowLeft, MapPin, Calculator, Plus, Minus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, MapPin, Calculator, Plus, Minus, Clock, CheckCircle } from "lucide-react";
 import { Order } from "@/pages/Index";
 
 interface OrderFormProps {
   onOrderSubmit: (order: Order) => void;
   onBack: () => void;
+  isAuthenticated?: boolean;
+  currentUserName?: string;
+  currentUserPhone?: string;
+  userOrders?: Order[];
 }
 
-const OrderForm = ({ onOrderSubmit, onBack }: OrderFormProps) => {
+const OrderForm = ({ 
+  onOrderSubmit, 
+  onBack, 
+  isAuthenticated = false, 
+  currentUserName = "", 
+  currentUserPhone = "",
+  userOrders = []
+}: OrderFormProps) => {
   const [formData, setFormData] = useState({
     customerName: "",
     phoneNumber: "",
@@ -25,6 +35,18 @@ const OrderForm = ({ onOrderSubmit, onBack }: OrderFormProps) => {
 
   const [distance, setDistance] = useState<number | null>(null);
   const [isCalculatingDistance, setIsCalculatingDistance] = useState(false);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+
+  // Auto-fill user data when logged in
+  useEffect(() => {
+    if (isAuthenticated && currentUserName && currentUserPhone) {
+      setFormData(prev => ({
+        ...prev,
+        customerName: currentUserName,
+        phoneNumber: currentUserPhone
+      }));
+    }
+  }, [isAuthenticated, currentUserName, currentUserPhone]);
 
   const calculateDistance = async () => {
     if (!formData.pickupAddress || !formData.deliveryAddress) return;
@@ -91,19 +113,88 @@ const OrderForm = ({ onOrderSubmit, onBack }: OrderFormProps) => {
     onOrderSubmit(order);
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'assigned': return 'text-blue-600 bg-blue-100';
+      case 'in-progress': return 'text-orange-600 bg-orange-100';
+      case 'completed': return 'text-green-600 bg-green-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'pending': return <Clock className="h-4 w-4" />;
+      case 'assigned': return <Clock className="h-4 w-4" />;
+      case 'in-progress': return <Clock className="h-4 w-4" />;
+      case 'completed': return <CheckCircle className="h-4 w-4" />;
+      default: return <Clock className="h-4 w-4" />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="flex items-center mb-6">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5 text-gray-600" />
-          </button>
-          <h1 className="text-xl font-bold text-gray-900 ml-4">Place Your Order</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <h1 className="text-xl font-bold text-gray-900 ml-4">Place Your Order</h1>
+          </div>
+          
+          {isAuthenticated && userOrders.length > 0 && (
+            <button
+              onClick={() => setShowOrderHistory(!showOrderHistory)}
+              className="text-green-600 hover:text-green-700 text-sm font-medium"
+            >
+              {showOrderHistory ? 'Hide History' : 'View Order History'}
+            </button>
+          )}
         </div>
+
+        {/* Order History */}
+        {showOrderHistory && isAuthenticated && (
+          <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Order History</h2>
+            
+            {userOrders.length === 0 ? (
+              <p className="text-gray-600">No previous orders found.</p>
+            ) : (
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {userOrders.slice().reverse().map((order) => (
+                  <div key={order.id} className="border rounded-lg p-3">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium">Order #{order.id}</p>
+                        <p className="text-sm text-gray-600">
+                          {order.pickupAddress} → {order.deliveryAddress}
+                        </p>
+                      </div>
+                      <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                        {getStatusIcon(order.status)}
+                        <span className="ml-1">{order.status}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-500">
+                        {order.createdAt.toLocaleDateString()}
+                      </span>
+                      <span className="font-medium text-green-600">
+                        {order.totalCost.toLocaleString()} RWF
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Customer Information */}
@@ -122,7 +213,11 @@ const OrderForm = ({ onOrderSubmit, onBack }: OrderFormProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter your full name"
+                  readOnly={isAuthenticated && !!currentUserName}
                 />
+                {isAuthenticated && currentUserName && (
+                  <p className="text-xs text-green-600 mt-1">Auto-filled from your account</p>
+                )}
               </div>
 
               <div>
@@ -136,7 +231,11 @@ const OrderForm = ({ onOrderSubmit, onBack }: OrderFormProps) => {
                   onChange={(e) => setFormData(prev => ({ ...prev, phoneNumber: e.target.value }))}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="+250 7XX XXX XXX"
+                  readOnly={isAuthenticated && !!currentUserPhone}
                 />
+                {isAuthenticated && currentUserPhone && (
+                  <p className="text-xs text-green-600 mt-1">Auto-filled from your account</p>
+                )}
               </div>
             </div>
           </div>

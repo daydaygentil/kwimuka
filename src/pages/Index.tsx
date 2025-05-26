@@ -439,6 +439,15 @@ const Index = () => {
           <OrderForm 
             onOrderSubmit={handleOrderSubmit}
             onBack={() => setCurrentView('home')}
+            isAuthenticated={isAuthenticated}
+            currentUserName={currentUserName}
+            currentUserPhone={userAccounts.find(u => u.id === currentUserId)?.phone || ''}
+            userOrders={orders.filter(o => 
+              isAuthenticated && (
+                o.customerName === currentUserName || 
+                o.phoneNumber === userAccounts.find(u => u.id === currentUserId)?.phone
+              )
+            )}
           />
         )}
         
