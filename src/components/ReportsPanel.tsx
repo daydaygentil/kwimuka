@@ -1,446 +1,329 @@
-
-import { useState } from "react";
-import { 
-  FileText, 
-  TrendingUp, 
-  Package, 
-  MapPin, 
-  DollarSign, 
-  CheckCircle,
-  CreditCard,
-  Truck,
-  Users,
-  Sparkles,
-  Key
-} from "lucide-react";
-import { Order, JobApplication } from "@/pages/Index";
-import { JobAssignment } from "@/types/worker";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import React, { useState } from 'react';
+import { Order, JobApplication } from '@/pages/Index';
+import { JobAssignment } from '@/types/worker';
+import { Worker, UserAccount } from '@/types/worker';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { FileText, Download, DollarSign, Package, Truck, MapPin, Key, Sparkles, CheckCircle, CreditCard } from 'lucide-react';
 
 interface ReportsPanelProps {
   orders: Order[];
-  jobApplications: JobApplication[];
   jobAssignments: JobAssignment[];
+  userAccounts: UserAccount[];
+  workers: Worker[];
 }
 
-const ReportsPanel = ({ orders, jobApplications, jobAssignments }: ReportsPanelProps) => {
+const ReportsPanel = ({ orders, jobAssignments, userAccounts, workers }: ReportsPanelProps) => {
   const [activeReport, setActiveReport] = useState<string>('overview');
 
-  const reports = [
-    { id: 'overview', name: 'Overview', icon: FileText },
-    { id: 'service', name: 'Service Report', icon: Package },
-    { id: 'orders', name: 'Order Report', icon: TrendingUp },
-    { id: 'keyDelivery', name: 'Key Delivery', icon: Key },
-    { id: 'cleaning', name: 'Cleaning Report', icon: Sparkles },
-    { id: 'transport', name: 'Transport Report', icon: Truck },
-    { id: 'pricing', name: 'Price Report', icon: DollarSign },
-    { id: 'distance', name: 'Distance Report', icon: MapPin },
-    { id: 'confirmation', name: 'Confirmation Report', icon: CheckCircle },
-    { id: 'payment', name: 'Payment Report', icon: CreditCard },
-  ];
+  const calculateTotalRevenue = () => {
+    return orders.reduce((sum, order) => sum + order.totalCost, 0);
+  };
 
-  const getServiceStats = () => {
-    const stats = {
+  const calculateCompletedOrders = () => {
+    return orders.filter(order => order.status === 'completed').length;
+  };
+
+  const calculatePendingOrders = () => {
+    return orders.filter(order => order.status === 'pending').length;
+  };
+
+  const calculateAverageOrderValue = () => {
+    if (orders.length === 0) return 0;
+    const totalRevenue = calculateTotalRevenue();
+    return totalRevenue / orders.length;
+  };
+
+  const calculateServiceUsage = () => {
+    const transportCount = orders.filter(o => o.services.transport).length;
+    const helpersSum = orders.reduce((sum, o) => sum + o.services.helpers, 0);
+    const cleaningCount = orders.filter(o => o.services.cleaning).length;
+    const keyDeliveryCount = orders.filter(o => o.services.keyDelivery).length;
+
+    return {
+      transport: transportCount,
+      helpers: helpersSum,
+      cleaning: cleaningCount,
+      keyDelivery: keyDeliveryCount,
+    };
+  };
+
+  const calculateOrderStatusCounts = () => {
+    const completedCount = orders.filter(o => o.status === 'completed').length;
+    const assignedCount = orders.filter(o => o.status === 'assigned').length;
+    const inProgressCount = orders.filter(o => o.status === 'in-progress').length;
+    const pendingCount = orders.filter(o => o.status === 'pending').length;
+
+    return {
+      completed: completedCount,
+      assigned: assignedCount,
+      inProgress: inProgressCount,
+      pending: pendingCount,
+    };
+  };
+
+  const calculateWorkerPerformance = () => {
+    const workerPerformance: { [workerId: string]: number } = {};
+
+    jobAssignments.forEach(assignment => {
+      if (assignment.assignedWorker) {
+        const workerId = assignment.assignedWorker.id;
+        workerPerformance[workerId] = (workerPerformance[workerId] || 0) + 1;
+      }
+    });
+
+    return workerPerformance;
+  };
+
+  const generateServiceReport = () => {
+    const serviceStats = {
       transport: orders.filter(o => o.services.transport).length,
       helpers: orders.reduce((sum, o) => sum + o.services.helpers, 0),
       cleaning: orders.filter(o => o.services.cleaning).length,
       keyDelivery: orders.filter(o => o.services.keyDelivery).length,
     };
-    return stats;
+
+    return [
+      { name: 'Truck Transport', value: serviceStats.transport },
+      { name: 'Helpers', value: serviceStats.helpers },
+      { name: 'Cleaning', value: serviceStats.cleaning },
+      { name: 'Key Delivery', value: serviceStats.keyDelivery },
+    ];
   };
 
-  const getOrdersByStatus = () => {
-    return {
-      pending: orders.filter(o => o.status === 'pending').length,
-      assigned: orders.filter(o => o.status === 'assigned').length,
-      inProgress: orders.filter(o => o.status === 'in-progress').length,
-      completed: orders.filter(o => o.status === 'completed').length,
-    };
+  const generateOrderReport = () => {
+    return orders.map(order => ({
+      id: order.id,
+      customer: order.customerName,
+      status: order.status,
+      total: order.totalCost,
+      date: order.createdAt.toLocaleDateString(),
+    }));
   };
 
-  const getTotalRevenue = () => {
-    return orders.reduce((sum, order) => sum + order.totalCost, 0);
+  const generateDistanceReport = () => {
+    return orders
+      .filter(order => order.distance)
+      .map(order => ({
+        id: order.id,
+        customer: order.customerName,
+        distance: order.distance,
+        cost: order.distance ? order.distance * 3000 : 0,
+      }));
   };
 
-  const getRevenueByService = () => {
-    let transportRevenue = 0;
-    let helpersRevenue = 0;
-    let cleaningRevenue = 0;
-    let keyDeliveryRevenue = 0;
-    let serviceFeeRevenue = 0;
-
-    orders.forEach(order => {
-      serviceFeeRevenue += 15000; // Base service fee
-      if (order.services.transport) transportRevenue += 40000;
-      if (order.services.helpers > 0) helpersRevenue += order.services.helpers * 10000;
-      if (order.services.cleaning) cleaningRevenue += 5000;
-      if (order.services.keyDelivery) keyDeliveryRevenue += 5000;
-    });
-
-    return {
-      serviceFee: serviceFeeRevenue,
-      transport: transportRevenue,
-      helpers: helpersRevenue,
-      cleaning: cleaningRevenue,
-      keyDelivery: keyDeliveryRevenue,
-    };
+  const generatePaymentReport = () => {
+    const completedOrders = orders.filter(o => o.status === 'completed');
+    const pendingOrders = orders.filter(o => o.status !== 'completed');
+    
+    return [
+      { name: 'Paid Orders', value: completedOrders.length, amount: completedOrders.reduce((sum, o) => sum + o.totalCost, 0) },
+      { name: 'Pending Payment', value: pendingOrders.length, amount: pendingOrders.reduce((sum, o) => sum + o.totalCost, 0) },
+    ];
   };
 
-  const getAverageDistance = () => {
-    const ordersWithDistance = orders.filter(o => o.distance && o.distance > 0);
-    if (ordersWithDistance.length === 0) return 0;
-    return ordersWithDistance.reduce((sum, o) => sum + (o.distance || 0), 0) / ordersWithDistance.length;
-  };
+  const serviceData = generateServiceReport();
+  const orderData = generateOrderReport();
+  const distanceData = generateDistanceReport();
+  const paymentData = generatePaymentReport();
 
-  const renderOverviewReport = () => {
-    const serviceStats = getServiceStats();
-    const orderStats = getOrdersByStatus();
-    const revenue = getTotalRevenue();
+  const COLORS = ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'];
 
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-600 text-sm font-medium">Total Orders</p>
-                <p className="text-2xl font-bold text-blue-900">{orders.length}</p>
-              </div>
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
+  const downloadReport = (reportType: string) => {
+    let data = '';
+    let filename = '';
 
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-600 text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-green-900">{orderStats.completed}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
-
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-600 text-sm font-medium">In Progress</p>
-                <p className="text-2xl font-bold text-orange-900">{orderStats.inProgress}</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-600" />
-            </div>
-          </div>
-
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Total Revenue</p>
-                <p className="text-2xl font-bold text-purple-900">{revenue.toLocaleString()} RWF</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Service Usage</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span>Transport Service</span>
-                <span className="font-semibold">{serviceStats.transport}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Total Helpers</span>
-                <span className="font-semibold">{serviceStats.helpers}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Cleaning Service</span>
-                <span className="font-semibold">{serviceStats.cleaning}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Key Delivery</span>
-                <span className="font-semibold">{serviceStats.keyDelivery}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Order Status</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-yellow-600">Pending</span>
-                <span className="font-semibold">{orderStats.pending}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-blue-600">Assigned</span>
-                <span className="font-semibold">{orderStats.assigned}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-orange-600">In Progress</span>
-                <span className="font-semibold">{orderStats.inProgress}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-green-600">Completed</span>
-                <span className="font-semibold">{orderStats.completed}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderOrdersTable = () => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Order ID</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Services</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Total</TableHead>
-          <TableHead>Date</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {orders.map((order) => (
-          <TableRow key={order.id}>
-            <TableCell className="font-mono">{order.id}</TableCell>
-            <TableCell>{order.customerName}</TableCell>
-            <TableCell>
-              <div className="flex flex-wrap gap-1">
-                {order.services.transport && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Transport</span>}
-                {order.services.helpers > 0 && <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs">{order.services.helpers} Helpers</span>}
-                {order.services.cleaning && <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Cleaning</span>}
-                {order.services.keyDelivery && <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Key Delivery</span>}
-              </div>
-            </TableCell>
-            <TableCell>
-              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                order.status === 'in-progress' ? 'bg-orange-100 text-orange-800' :
-                order.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
-                {order.status}
-              </span>
-            </TableCell>
-            <TableCell className="font-semibold">{order.totalCost.toLocaleString()} RWF</TableCell>
-            <TableCell>{order.createdAt.toLocaleDateString()}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-
-  const renderPricingReport = () => {
-    const revenue = getRevenueByService();
-    const total = Object.values(revenue).reduce((sum, val) => sum + val, 0);
-
-    return (
-      <div className="space-y-6">
-        <div className="bg-white p-6 rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Revenue Breakdown</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span>Service Fees (15,000 RWF × {orders.length})</span>
-              <span className="font-semibold">{revenue.serviceFee.toLocaleString()} RWF</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Transport Service (40,000 RWF each)</span>
-              <span className="font-semibold">{revenue.transport.toLocaleString()} RWF</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Moving Helpers (10,000 RWF each)</span>
-              <span className="font-semibold">{revenue.helpers.toLocaleString()} RWF</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Cleaning Service (5,000 RWF each)</span>
-              <span className="font-semibold">{revenue.cleaning.toLocaleString()} RWF</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Key Delivery (5,000 RWF each)</span>
-              <span className="font-semibold">{revenue.keyDelivery.toLocaleString()} RWF</span>
-            </div>
-            <div className="border-t pt-3 mt-3">
-              <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total Revenue</span>
-                <span className="text-green-600">{total.toLocaleString()} RWF</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderDistanceReport = () => {
-    const avgDistance = getAverageDistance();
-    const ordersWithDistance = orders.filter(o => o.distance && o.distance > 0);
-
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-600 text-sm font-medium">Average Distance</p>
-                <p className="text-2xl font-bold text-blue-900">{avgDistance.toFixed(1)} km</p>
-              </div>
-              <MapPin className="h-8 w-8 text-blue-600" />
-            </div>
-          </div>
-
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-600 text-sm font-medium">Orders with Distance</p>
-                <p className="text-2xl font-bold text-green-900">{ordersWithDistance.length}</p>
-              </div>
-              <Package className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
-
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Total Distance</p>
-                <p className="text-2xl font-bold text-purple-900">{ordersWithDistance.reduce((sum, o) => sum + (o.distance || 0), 0).toFixed(1)} km</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>From</TableHead>
-              <TableHead>To</TableHead>
-              <TableHead>Distance</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {ordersWithDistance.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="font-mono">{order.id}</TableCell>
-                <TableCell>{order.customerName}</TableCell>
-                <TableCell className="max-w-xs truncate">{order.pickupAddress}</TableCell>
-                <TableCell className="max-w-xs truncate">{order.deliveryAddress}</TableCell>
-                <TableCell className="font-semibold">{order.distance} km</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                    order.status === 'in-progress' ? 'bg-orange-100 text-orange-800' :
-                    order.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {order.status}
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  };
-
-  const renderContent = () => {
-    switch (activeReport) {
-      case 'overview':
-        return renderOverviewReport();
+    switch (reportType) {
+      case 'services':
+        data = serviceData.map(item => `${item.name}: ${item.value}`).join('\n');
+        filename = 'service-report.txt';
+        break;
       case 'orders':
-        return renderOrdersTable();
-      case 'pricing':
-        return renderPricingReport();
+        data = orderData.map(item => `Order ${item.id}: ${item.customer} - ${item.status} - ${item.total} RWF`).join('\n');
+        filename = 'order-report.txt';
+        break;
       case 'distance':
-        return renderDistanceReport();
-      case 'service':
-        return (
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">All Services Provided</h3>
-            {renderOrdersTable()}
-          </div>
-        );
-      case 'keyDelivery':
-        const keyDeliveryOrders = orders.filter(o => o.services.keyDelivery);
-        return (
-          <div className="bg-white p-6 rounded-lg border">
-            <h3 className="text-lg font-semibold mb-4">Key Delivery Orders ({keyDeliveryOrders.length})</h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Delivery Address</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {keyDeliveryOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-mono">{order.id}</TableCell>
-                    <TableCell>{order.customerName}</TableCell>
-                    <TableCell>{order.phoneNumber}</TableCell>
-                    <TableCell className="max-w-xs truncate">{order.deliveryAddress}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'in-progress' ? 'bg-orange-100 text-orange-800' :
-                        order.status === 'assigned' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{order.createdAt.toLocaleDateString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        );
+        data = distanceData.map(item => `Order ${item.id}: ${item.distance}km - ${item.cost} RWF`).join('\n');
+        filename = 'distance-report.txt';
+        break;
+      case 'payment':
+        data = paymentData.map(item => `${item.name}: ${item.value} orders - ${item.amount} RWF`).join('\n');
+        filename = 'payment-report.txt';
+        break;
       default:
-        return renderOverviewReport();
+        return;
     }
+
+    const blob = new Blob([data], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
   };
+
+  const reportItems = [
+    { id: 'overview', name: 'Overview', icon: FileText },
+    { id: 'services', name: 'Service Report', icon: Package },
+    { id: 'orders', name: 'Order Report', icon: FileText },
+    { id: 'transport', name: 'Transport Report', icon: Truck },
+    { id: 'cleaning', name: 'Cleaning Report', icon: Sparkles },
+    { id: 'keydelivery', name: 'Key Delivery Report', icon: Key },
+    { id: 'distance', name: 'Distance Report', icon: MapPin },
+    { id: 'payment', name: 'Payment Report', icon: CreditCard },
+  ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-2">
-        {reports.map((report) => {
-          const Icon = report.icon;
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {reportItems.map((item) => {
+          const Icon = item.icon;
           return (
             <button
-              key={report.id}
-              onClick={() => setActiveReport(report.id)}
-              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeReport === report.id
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-50 border'
+              key={item.id}
+              onClick={() => setActiveReport(item.id)}
+              className={`p-4 rounded-lg border text-left transition-colors ${
+                activeReport === item.id
+                  ? 'bg-green-50 border-green-200 text-green-700'
+                  : 'bg-white border-gray-200 hover:bg-gray-50'
               }`}
             >
-              <Icon className="h-4 w-4 mr-2" />
-              {report.name}
+              <Icon className="h-5 w-5 mb-2" />
+              <p className="text-sm font-medium">{item.name}</p>
             </button>
           );
         })}
       </div>
 
-      {renderContent()}
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        {activeReport === 'overview' && (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Business Overview</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-900">Total Orders</h4>
+                <p className="text-2xl font-bold text-blue-600">{orders.length}</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-green-900">Completed</h4>
+                <p className="text-2xl font-bold text-green-600">
+                  {orders.filter(o => o.status === 'completed').length}
+                </p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-purple-900">Total Revenue</h4>
+                <p className="text-2xl font-bold text-purple-600">
+                  {orders.reduce((sum, o) => sum + o.totalCost, 0).toLocaleString()} RWF
+                </p>
+              </div>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <h4 className="font-semibold text-orange-900">Active Workers</h4>
+                <p className="text-2xl font-bold text-orange-600">{workers.length}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeReport === 'services' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Service Usage Report</h3>
+              <button
+                onClick={() => downloadReport('services')}
+                className="flex items-center text-green-600 hover:text-green-700"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Download
+              </button>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={serviceData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label
+                  >
+                    {serviceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {activeReport === 'distance' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Distance & Transport Cost Report</h3>
+              <button
+                onClick={() => downloadReport('distance')}
+                className="flex items-center text-green-600 hover:text-green-700"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Download
+              </button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full table-auto">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Order ID</th>
+                    <th className="px-4 py-2 text-left">Customer</th>
+                    <th className="px-4 py-2 text-left">Distance (km)</th>
+                    <th className="px-4 py-2 text-left">Transport Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {distanceData.map((item, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="px-4 py-2">{item.id}</td>
+                      <td className="px-4 py-2">{item.customer}</td>
+                      <td className="px-4 py-2">{item.distance}</td>
+                      <td className="px-4 py-2">{item.cost.toLocaleString()} RWF</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeReport === 'payment' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Payment Status Report</h3>
+              <button
+                onClick={() => downloadReport('payment')}
+                className="flex items-center text-green-600 hover:text-green-700"
+              >
+                <Download className="h-4 w-4 mr-1" />
+                Download
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {paymentData.map((item, index) => (
+                <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900">{item.name}</h4>
+                  <p className="text-lg font-bold text-green-600">{item.value} orders</p>
+                  <p className="text-sm text-gray-600">{item.amount.toLocaleString()} RWF</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
