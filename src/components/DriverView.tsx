@@ -1,7 +1,5 @@
-
 import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut } from "lucide-react";
 import { Order, OrderStatus, UserRole } from "@/pages/Index";
-import MapView from "./MapView";
 
 interface DriverViewProps {
   orders: Order[];
@@ -90,12 +88,12 @@ const DriverView = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 px-2 md:px-4 py-4 md:py-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
           <div>
             <div className="flex items-center space-x-3">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{getRoleTitle()}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{getRoleTitle()}</h1>
               {onLogout && (
                 <button
                   onClick={onLogout}
@@ -106,7 +104,7 @@ const DriverView = ({
                 </button>
               )}
             </div>
-            <p className="text-gray-600 text-sm md:text-base">
+            <p className="text-gray-600">
               {userName && `Welcome ${userName} - `}
               Manage your assigned {userRole === 'driver' ? 'moving jobs' : `${userRole} tasks`}
             </p>
@@ -114,7 +112,7 @@ const DriverView = ({
           {orders.length > 0 && (
             <button
               onClick={printDriverReport}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center text-sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
             >
               <Printer className="h-4 w-4 mr-2" />
               Print Report
@@ -123,7 +121,7 @@ const DriverView = ({
         </div>
 
         {orders.length === 0 ? (
-          <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm text-center">
+          <div className="bg-white p-8 rounded-xl shadow-sm text-center">
             <div className="mb-4">
               <Clock className="h-12 w-12 text-gray-400 mx-auto" />
             </div>
@@ -133,83 +131,100 @@ const DriverView = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {orders.map((order) => (
-              <div key={order.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-                <div className="p-4 md:p-6">
-                  <div className="flex flex-col md:flex-row justify-between items-start mb-4 space-y-2 md:space-y-0">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Order #{order.id}</h3>
-                      <p className="text-gray-600">{order.customerName}</p>
-                    </div>
-                    <div className="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </span>
-                      <span className="text-lg font-bold text-green-600">
-                        {order.totalCost.toLocaleString()} RWF
-                      </span>
-                    </div>
+              <div key={order.id} className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Order #{order.id}</h3>
+                    <p className="text-gray-600">{order.customerName}</p>
                   </div>
-
-                  <div className="mb-6">
-                    <MapView 
-                      order={order}
-                      onDistanceCalculated={(distance) => {
-                        console.log(`Distance calculated for order ${order.id}: ${distance} km`);
-                      }}
-                    />
+                  <div className="flex items-center space-x-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </span>
+                    <span className="text-lg font-bold text-green-600">
+                      {order.totalCost.toLocaleString()} RWF
+                    </span>
                   </div>
-
-                  <div className="flex flex-wrap gap-4 mb-4 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">Phone: {order.phoneNumber}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-gray-500" />
-                      <span className="text-gray-600">
-                        {order.createdAt.toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Services Required:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {order.services.transport && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                          Truck Transport
-                        </span>
-                      )}
-                      {order.services.helpers > 0 && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-sm">
-                          {order.services.helpers} Helper(s)
-                        </span>
-                      )}
-                      {order.services.cleaning && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
-                          Cleaning
-                        </span>
-                      )}
-                      {order.services.keyDelivery && (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
-                          Key Delivery
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {(order.status === 'assigned' || order.status === 'in-progress') && (
-                    <button
-                      onClick={() => onUpdateOrder(order.id, getNextStatus(order.status))}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
-                    >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {getActionButtonText(order.status)}
-                    </button>
-                  )}
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <div className="flex items-start space-x-2 mb-2">
+                      <MapPin className="h-4 w-4 text-green-600 mt-1" />
+                      <div>
+                        <p className="text-sm text-gray-600">Pickup</p>
+                        <p className="font-medium">{order.pickupAddress}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-start space-x-2 mb-2">
+                      <MapPin className="h-4 w-4 text-red-600 mt-1" />
+                      <div>
+                        <p className="text-sm text-gray-600">Delivery</p>
+                        <p className="font-medium">{order.deliveryAddress}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">Phone: {order.phoneNumber}</span>
+                  </div>
+                  {order.distance && (
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600">Distance: {order.distance} km</span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">
+                      {order.createdAt.toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mb-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Services Required:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {order.services.transport && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                        Truck Transport
+                      </span>
+                    )}
+                    {order.services.helpers > 0 && (
+                      <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-sm">
+                        {order.services.helpers} Helper(s)
+                      </span>
+                    )}
+                    {order.services.cleaning && (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm">
+                        Cleaning
+                      </span>
+                    )}
+                    {order.services.keyDelivery && (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
+                        Key Delivery
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {(order.status === 'assigned' || order.status === 'in-progress') && (
+                  <button
+                    onClick={() => onUpdateOrder(order.id, getNextStatus(order.status))}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    {getActionButtonText(order.status)}
+                  </button>
+                )}
               </div>
             ))}
           </div>
