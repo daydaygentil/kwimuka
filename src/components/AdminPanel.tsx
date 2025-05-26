@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { Order, OrderStatus, JobApplication } from "@/pages/Index";
 import { Search, Filter, DollarSign, Users, Truck, FileText, Printer } from "lucide-react";
+import { JobAssignment, Worker, ServiceNotification } from '@/types/worker';
+import ServiceStatusTracker from '@/components/ServiceStatusTracker';
 
 interface AdminPanelProps {
   orders: Order[];
   jobApplications: JobApplication[];
+  jobAssignments: JobAssignment[];
+  workers: Worker[];
+  notifications: ServiceNotification[];
   onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
   onUpdateJobApplication: (applicationId: string, status: 'pending' | 'approved' | 'rejected') => void;
   availableDrivers: { id: string; name: string; phone: string }[];
@@ -14,6 +19,9 @@ interface AdminPanelProps {
 const AdminPanel = ({ 
   orders, 
   jobApplications, 
+  jobAssignments,
+  workers,
+  notifications,
   onUpdateOrder, 
   onUpdateJobApplication, 
   availableDrivers, 
@@ -21,7 +29,7 @@ const AdminPanel = ({
 }: AdminPanelProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [activeTab, setActiveTab] = useState<'orders' | 'applications'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'applications' | 'workers'>('orders');
 
   const drivers = availableDrivers.map(driver => driver.name);
 
@@ -54,6 +62,16 @@ const AdminPanel = ({
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const getWorkerStats = () => {
+    const activeJobs = jobAssignments.filter(ja => ja.status === 'in-progress').length;
+    const completedJobs = jobAssignments.filter(ja => ja.status === 'completed').length;
+    const pendingJobs = jobAssignments.filter(ja => ja.status === 'pending').length;
+    
+    return { activeJobs, completedJobs, pendingJobs };
+  };
+
+  const workerStats = getWorkerStats();
 
   const printReport = () => {
     const reportContent = `
@@ -110,7 +128,7 @@ const AdminPanel = ({
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           <div className="bg-white p-6 rounded-xl shadow-sm">
             <div className="flex items-center">
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -158,6 +176,18 @@ const AdminPanel = ({
               </div>
             </div>
           </div>
+
+          <div className="bg-white p-6 rounded-xl shadow-sm">
+            <div className="flex items-center">
+              <div className="bg-indigo-100 p-3 rounded-lg">
+                <Users className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-gray-600">Active Jobs</p>
+                <p className="text-2xl font-bold text-gray-900">{workerStats.activeJobs}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -183,6 +213,16 @@ const AdminPanel = ({
                 }`}
               >
                 Job Applications ({jobApplications.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('workers')}
+                className={`py-4 border-b-2 font-medium text-sm ${
+                  activeTab === 'workers'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Workers ({workers.length})
               </button>
             </nav>
           </div>
@@ -376,6 +416,56 @@ const AdminPanel = ({
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === 'workers' && (
+            <div className="p-6">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Worker</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Jobs</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notifications</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {workers.map((worker) => {
+                      const workerNotifications = notifications.filter(n => n.workerId === worker.id);
+                      
+                      return (
+                        <tr key={worker.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{worker.name}</div>
+                              <div className="text-sm text-gray-500">{worker.phone}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded capitalize">
+                              {worker.type}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs rounded ${worker.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                              {worker.isAvailable ? 'Available' : 'Busy'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{worker.currentJobs.length} active</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{workerNotifications.length} pending</div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Navigation from "@/components/Navigation";
 import Homepage from "@/components/Homepage";
@@ -12,6 +11,9 @@ import UnifiedLogin from "@/components/UnifiedLogin";
 import ApplyJobs from "@/components/ApplyJobs";
 import HelpPage from "@/components/HelpPage";
 import TermsAndConditions from "@/components/TermsAndConditions";
+import { Worker, JobAssignment, ServiceNotification, WorkerType } from '@/types/worker';
+import WorkerNotificationPanel from '@/components/WorkerNotificationPanel';
+import ServiceStatusTracker from '@/components/ServiceStatusTracker';
 
 export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
 export type OrderStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
@@ -59,6 +61,27 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserName, setCurrentUserName] = useState<string>('');
+  const [workers, setWorkers] = useState<Worker[]>([
+    // Drivers
+    { id: 'driver1', name: 'John Doe', phone: '+250 788 123 001', type: 'driver', isAvailable: true, currentJobs: [] },
+    { id: 'driver2', name: 'Jane Smith', phone: '+250 788 123 002', type: 'driver', isAvailable: true, currentJobs: [] },
+    { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003', type: 'driver', isAvailable: true, currentJobs: [] },
+    
+    // Helpers
+    { id: 'helper1', name: 'Paul Helper', phone: '+250 788 123 004', type: 'helper', isAvailable: true, currentJobs: [] },
+    { id: 'helper2', name: 'Mary Helper', phone: '+250 788 123 005', type: 'helper', isAvailable: true, currentJobs: [] },
+    
+    // Cleaners
+    { id: 'cleaner1', name: 'Alice Cleaner', phone: '+250 788 123 006', type: 'cleaner', isAvailable: true, currentJobs: [] },
+    { id: 'cleaner2', name: 'Bob Cleaner', phone: '+250 788 123 007', type: 'cleaner', isAvailable: true, currentJobs: [] },
+    
+    // Delivery workers
+    { id: 'delivery1', name: 'Sam Delivery', phone: '+250 788 123 008', type: 'delivery', isAvailable: true, currentJobs: [] },
+    { id: 'delivery2', name: 'Lisa Delivery', phone: '+250 788 123 009', type: 'delivery', isAvailable: true, currentJobs: [] },
+  ]);
+  
+  const [jobAssignments, setJobAssignments] = useState<JobAssignment[]>([]);
+  const [notifications, setNotifications] = useState<ServiceNotification[]>([]);
 
   // Mock drivers data for assignment
   const availableDrivers = [
@@ -67,20 +90,195 @@ const Index = () => {
     { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003' },
   ];
 
-  const handleOrderSubmit = (order: Order) => {
-    // Auto-assign to first available driver for demo
-    const assignedDriver = availableDrivers[0];
-    const updatedOrder = {
-      ...order,
-      status: 'assigned' as OrderStatus,
-      assignedDriver: assignedDriver.id,
-      assignedDriverName: assignedDriver.name,
-      assignedDriverPhone: assignedDriver.phone
-    };
+  const createJobAssignments = (order: Order): JobAssignment[] => {
+    const assignments: JobAssignment[] = [];
     
-    setOrders(prev => [...prev, updatedOrder]);
-    setCurrentOrder(updatedOrder);
+    if (order.services.transport) {
+      assignments.push({
+        id: `${order.id}-transport`,
+        orderId: order.id,
+        serviceType: 'transport',
+        status: 'pending'
+      });
+    }
+    
+    if (order.services.helpers > 0) {
+      assignments.push({
+        id: `${order.id}-helpers`,
+        orderId: order.id,
+        serviceType: 'helpers',
+        status: 'pending'
+      });
+    }
+    
+    if (order.services.cleaning) {
+      assignments.push({
+        id: `${order.id}-cleaning`,
+        orderId: order.id,
+        serviceType: 'cleaning',
+        status: 'pending'
+      });
+    }
+    
+    if (order.services.keyDelivery) {
+      assignments.push({
+        id: `${order.id}-keyDelivery`,
+        orderId: order.id,
+        serviceType: 'keyDelivery',
+        status: 'pending'
+      });
+    }
+    
+    return assignments;
+  };
+
+  const notifyWorkers = (assignments: JobAssignment[]) => {
+    const newNotifications: ServiceNotification[] = [];
+    
+    assignments.forEach(assignment => {
+      const workerType: WorkerType = assignment.serviceType === 'transport' ? 'driver' :
+                                    assignment.serviceType === 'helpers' ? 'helper' :
+                                    assignment.serviceType === 'cleaning' ? 'cleaner' : 'delivery';
+      
+      const availableWorkers = workers.filter(w => w.type === workerType && w.isAvailable);
+      
+      if (availableWorkers.length > 0) {
+        const selectedWorker = availableWorkers[0]; // Select first available worker
+        
+        const notification: ServiceNotification = {
+          id: `notif-${assignment.id}-${Date.now()}`,
+          workerId: selectedWorker.id,
+          jobAssignmentId: assignment.id,
+          message: `New ${assignment.serviceType} job available. Accept now.`,
+          type: 'job_offer',
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+        };
+        
+        newNotifications.push(notification);
+        
+        // Set timeout for job reassignment
+        setTimeout(() => {
+          handleJobTimeout(assignment.id);
+        }, 10 * 60 * 1000); // 10 minutes
+      }
+    });
+    
+    setNotifications(prev => [...prev, ...newNotifications]);
+  };
+
+  const handleJobTimeout = (assignmentId: string) => {
+    setJobAssignments(prev => {
+      const assignment = prev.find(a => a.id === assignmentId);
+      if (assignment && assignment.status === 'pending') {
+        // Remove expired notification
+        setNotifications(prevNotifs => 
+          prevNotifs.filter(n => n.jobAssignmentId !== assignmentId)
+        );
+        
+        // Try to assign to next available worker
+        reassignJob(assignment);
+        
+        return prev;
+      }
+      return prev;
+    });
+  };
+
+  const reassignJob = (assignment: JobAssignment) => {
+    const workerType: WorkerType = assignment.serviceType === 'transport' ? 'driver' :
+                                  assignment.serviceType === 'helpers' ? 'helper' :
+                                  assignment.serviceType === 'cleaning' ? 'cleaner' : 'delivery';
+    
+    const availableWorkers = workers.filter(w => 
+      w.type === workerType && 
+      w.isAvailable && 
+      !notifications.some(n => n.workerId === w.id && n.jobAssignmentId === assignment.id)
+    );
+    
+    if (availableWorkers.length > 0) {
+      const nextWorker = availableWorkers[0];
+      
+      const notification: ServiceNotification = {
+        id: `notif-${assignment.id}-${Date.now()}`,
+        workerId: nextWorker.id,
+        jobAssignmentId: assignment.id,
+        message: `New ${assignment.serviceType} job available. Accept now.`,
+        type: 'job_offer',
+        createdAt: new Date(),
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      };
+      
+      setNotifications(prev => [...prev, notification]);
+      
+      setTimeout(() => {
+        handleJobTimeout(assignment.id);
+      }, 10 * 60 * 1000);
+    }
+  };
+
+  const handleOrderSubmit = (order: Order) => {
+    const assignments = createJobAssignments(order);
+    
+    setOrders(prev => [...prev, order]);
+    setJobAssignments(prev => [...prev, ...assignments]);
+    setCurrentOrder(order);
+    
+    // Notify workers about new jobs
+    notifyWorkers(assignments);
+    
     setCurrentView('receipt');
+  };
+
+  const handleAcceptJob = (jobId: string) => {
+    const notification = notifications.find(n => n.jobAssignmentId === jobId);
+    if (!notification) return;
+    
+    const worker = workers.find(w => w.id === notification.workerId);
+    if (!worker) return;
+    
+    setJobAssignments(prev => prev.map(assignment => 
+      assignment.id === jobId 
+        ? { 
+            ...assignment, 
+            assignedWorker: worker,
+            status: 'assigned',
+            assignedAt: new Date(),
+            acceptedAt: new Date()
+          }
+        : assignment
+    ));
+    
+    // Remove job offer notifications for this job
+    setNotifications(prev => prev.filter(n => n.jobAssignmentId !== jobId));
+    
+    // Update worker availability
+    setWorkers(prev => prev.map(w => 
+      w.id === worker.id 
+        ? { ...w, currentJobs: [...w.currentJobs, jobId] }
+        : w
+    ));
+    
+    // Notify user about job acceptance
+    const assignment = jobAssignments.find(a => a.id === jobId);
+    if (assignment) {
+      console.log(`Your ${assignment.serviceType} was accepted by ${worker.name}.`);
+    }
+  };
+
+  const handleDeclineJob = (jobId: string) => {
+    // Remove the declined notification
+    setNotifications(prev => prev.filter(n => n.jobAssignmentId !== jobId));
+    
+    // Try to reassign to another worker
+    const assignment = jobAssignments.find(a => a.id === jobId);
+    if (assignment) {
+      setTimeout(() => reassignJob(assignment), 1000);
+    }
+  };
+
+  const handleMarkNotificationRead = (notificationId: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
   const handleRoleChange = (role: UserRole) => {
@@ -185,16 +383,25 @@ const Index = () => {
         )}
         
         {currentView === 'receipt' && currentOrder && (
-          <OrderReceipt 
-            order={currentOrder}
-            onBack={() => setCurrentView('home')}
-            onTrackOrder={() => setCurrentView('track')}
-          />
+          <div>
+            <OrderReceipt 
+              order={currentOrder}
+              onBack={() => setCurrentView('home')}
+              onTrackOrder={() => setCurrentView('track')}
+            />
+            <div className="max-w-2xl mx-auto px-4 mt-6">
+              <ServiceStatusTracker 
+                jobAssignments={jobAssignments}
+                orderId={currentOrder.id}
+              />
+            </div>
+          </div>
         )}
 
         {currentView === 'track' && (
           <TrackOrder 
             orders={orders}
+            jobAssignments={jobAssignments}
             onBack={() => setCurrentView('home')}
           />
         )}
@@ -207,29 +414,51 @@ const Index = () => {
         )}
         
         {currentView === 'driver' && isAuthenticated && (
-          <DriverView 
-            orders={orders.filter(o => 
-              o.assignedDriver === currentUserId || 
-              (userRole === 'admin' && true) ||
-              (userRole === 'helper' && o.services.helpers > 0) ||
-              (userRole === 'cleaner' && o.services.cleaning)
-            )}
-            onUpdateOrder={(orderId, status) => {
-              setOrders(prev => prev.map(o => 
-                o.id === orderId ? { ...o, status } : o
-              ));
-            }}
-            driverId={currentUserId}
-            userName={currentUserName}
-            userRole={userRole}
-            onLogout={handleLogout}
-          />
+          <div className="relative">
+            <div className="absolute top-4 right-4 z-10">
+              <WorkerNotificationPanel
+                workerId={currentUserId}
+                notifications={notifications}
+                jobAssignments={jobAssignments}
+                onAcceptJob={handleAcceptJob}
+                onDeclineJob={handleDeclineJob}
+                onMarkNotificationRead={handleMarkNotificationRead}
+              />
+            </div>
+            <DriverView 
+              orders={orders.filter(o => 
+                jobAssignments.some(ja => 
+                  ja.orderId === o.id && 
+                  ja.assignedWorker?.id === currentUserId
+                )
+              )}
+              onUpdateOrder={(orderId, status) => {
+                setOrders(prev => prev.map(o => 
+                  o.id === orderId ? { ...o, status } : o
+                ));
+                
+                // Update job assignment status
+                setJobAssignments(prev => prev.map(ja => 
+                  ja.orderId === orderId && ja.assignedWorker?.id === currentUserId
+                    ? { ...ja, status: status === 'completed' ? 'completed' : 'in-progress' }
+                    : ja
+                ));
+              }}
+              driverId={currentUserId}
+              userName={currentUserName}
+              userRole={userRole}
+              onLogout={handleLogout}
+            />
+          </div>
         )}
         
         {currentView === 'admin' && isAuthenticated && userRole === 'admin' && (
           <AdminPanel 
             orders={orders}
             jobApplications={jobApplications}
+            jobAssignments={jobAssignments}
+            workers={workers}
+            notifications={notifications}
             onUpdateOrder={(orderId, updates) => {
               setOrders(prev => prev.map(o => 
                 o.id === orderId ? { ...o, ...updates } : o
