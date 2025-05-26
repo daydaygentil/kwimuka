@@ -67,6 +67,23 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserName, setCurrentUserName] = useState<string>('');
+  const [userAccounts, setUserAccounts] = useState<UserAccount[]>([
+    {
+      id: 'admin1',
+      name: 'Admin User',
+      phone: '+250 788 000 000',
+      password: 'admin123',
+      role: 'admin',
+      createdAt: new Date()
+    }
+  ]);
+  const [smsSettings, setSmsSettings] = useState<SMSSettings>({
+    id: 'sms1',
+    message: 'Hello {customerPhone}, your driver {driverName} has confirmed your order and is on the way!',
+    isActive: true,
+    updatedBy: 'admin',
+    updatedAt: new Date()
+  });
   const [workers, setWorkers] = useState<Worker[]>([
     // Drivers
     { id: 'driver1', name: 'John Doe', phone: '+250 788 123 001', type: 'driver', isAvailable: true, currentJobs: [] },
@@ -199,7 +216,8 @@ const Index = () => {
     const availableWorkers = workers.filter(w => 
       w.type === workerType && 
       w.isAvailable && 
-      !notifications.some(n => n.workerId === w.id && n.jobAssignmentId === assignment.id))
+      !notifications.some(n => n.workerId === w.id && n.jobAssignmentId === assignment.id)
+    );
     
     if (availableWorkers.length > 0) {
       const nextWorker = availableWorkers[0];
