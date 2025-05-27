@@ -78,8 +78,14 @@ serve(async (req: Request) => {
         }
       );
     } else {
-      // Simulate SMS failure
-      const errorMessage = 'SMS delivery failed - network error';
+      // Simulate SMS failure with different types of errors
+      const errorTypes = [
+        'SMS gateway timeout',
+        'Invalid phone number format',
+        'Network connectivity issue',
+        'SMS service temporarily unavailable'
+      ];
+      const errorMessage = errorTypes[Math.floor(Math.random() * errorTypes.length)];
       
       // Log failed SMS
       const { error: logError } = await supabase
@@ -112,6 +118,7 @@ serve(async (req: Request) => {
 
       console.log(`SMS failed for ${phoneNumber} for order ${orderId}: ${errorMessage}`);
       
+      // Return clear failure response with 500 status as requested
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -119,7 +126,7 @@ serve(async (req: Request) => {
           orderId: orderId
         }),
         {
-          status: 200, // Return 200 but with success: false
+          status: 500,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         }
       );
@@ -127,7 +134,10 @@ serve(async (req: Request) => {
   } catch (error: any) {
     console.error("Error in send-order-sms function:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ 
+        success: false, 
+        error: `Unexpected error: ${error.message}` 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

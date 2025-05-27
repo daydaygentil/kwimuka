@@ -143,7 +143,7 @@ const Index = () => {
     { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003' },
   ];
 
-  // Save order to Supabase and trigger SMS
+  // Save order to Supabase and trigger SMS with improved error handling
   const saveOrderToSupabase = async (order: Order) => {
     try {
       console.log('Saving order to Supabase:', order);
@@ -181,10 +181,13 @@ const Index = () => {
 
       console.log('Order saved successfully:', data);
 
-      // Trigger SMS notification
+      // Prepare SMS message
       const smsMessage = `Hello ${order.customerName}, your EasyMove order #${order.id} has been confirmed! We'll contact you shortly with driver details. Total: ${order.totalCost.toLocaleString()} RWF`;
       
+      // Trigger SMS notification with comprehensive error handling
       try {
+        console.log('Attempting to send SMS notification...');
+        
         const { data: smsData, error: smsError } = await supabase.functions.invoke('send-order-sms', {
           body: {
             orderId: order.id,
@@ -194,38 +197,48 @@ const Index = () => {
           }
         });
 
+        // Check for Supabase function invocation error
         if (smsError) {
-          console.error('Error triggering SMS:', smsError);
+          console.error('Supabase function invocation error:', smsError);
           toast({
-            title: "SMS Notification Failed",
-            description: "Order saved but SMS notification failed.",
+            title: "⚠️ SMS Confirmation Failed",
+            description: "We saved your order, but you may not receive the SMS. Please contact support if needed.",
             variant: "destructive",
           });
-        } else if (smsData?.success) {
-          console.log('SMS triggered successfully');
-          toast({
-            title: "Order Confirmed!",
-            description: "Order saved and SMS confirmation sent successfully.",
-            variant: "default",
-          });
-        } else {
-          console.log('SMS failed:', smsData?.error);
-          toast({
-            title: "Order Confirmed",
-            description: "Order saved but SMS delivery failed. We'll contact you directly.",
-            variant: "default",
-          });
+          return true; // Order was saved, just SMS failed
         }
-      } catch (smsError) {
-        console.error('SMS function call failed:', smsError);
+
+        // Check the response from the SMS function
+        if (!smsData || smsData.success !== true) {
+          const errorMessage = smsData?.error || 'Unknown SMS service error';
+          console.error('SMS service error:', errorMessage);
+          toast({
+            title: "⚠️ SMS Confirmation Failed",
+            description: "We saved your order, but you may not receive the SMS. Please contact support if needed.",
+            variant: "destructive",
+          });
+          return true; // Order was saved, just SMS failed
+        }
+
+        // SMS sent successfully
+        console.log('SMS sent successfully');
         toast({
-          title: "Order Confirmed",
-          description: "Order saved but SMS notification encountered an error.",
+          title: "✅ Order Confirmed!",
+          description: "Order saved and SMS confirmation sent successfully.",
           variant: "default",
         });
+        return true;
+
+      } catch (smsError) {
+        console.error('Unexpected error during SMS sending:', smsError);
+        toast({
+          title: "⚠️ Unexpected Error Sending SMS",
+          description: "We saved your order, but encountered an error sending SMS. Please contact support if needed.",
+          variant: "destructive",
+        });
+        return true; // Order was saved, just SMS failed
       }
 
-      return true;
     } catch (error) {
       console.error('Unexpected error saving order:', error);
       toast({
@@ -364,7 +377,7 @@ const Index = () => {
   const handleOrderSubmit = async (order: Order) => {
     console.log('Order submitted:', order);
     
-    // Save to Supabase first
+    // Save to Supabase first with improved error handling
     const saved = await saveOrderToSupabase(order);
     
     if (saved) {
