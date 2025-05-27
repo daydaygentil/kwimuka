@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   FileText, 
@@ -14,7 +13,7 @@ import {
   Key
 } from "lucide-react";
 import { Order, JobApplication } from "@/pages/Index";
-import { JobAssignment } from "@/types/worker";
+import { JobAssignment, UserAccount } from "@/types/worker";
 import {
   Table,
   TableBody,
@@ -26,11 +25,12 @@ import {
 
 interface ReportsPanelProps {
   orders: Order[];
-  jobApplications: JobApplication[];
+  jobApplications?: JobApplication[];
   jobAssignments: JobAssignment[];
+  userAccounts: UserAccount[];
 }
 
-const ReportsPanel = ({ orders, jobApplications, jobAssignments }: ReportsPanelProps) => {
+const ReportsPanel = ({ orders, jobApplications = [], jobAssignments, userAccounts }: ReportsPanelProps) => {
   const [activeReport, setActiveReport] = useState<string>('overview');
 
   const reports = [
