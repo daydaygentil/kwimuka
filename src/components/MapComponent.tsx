@@ -1,5 +1,5 @@
 
-/// <reference path="../types/google-maps.d.ts" />
+/// <reference types="../types/google-maps" />
 
 import { useEffect, useRef, useState } from 'react';
 import { Order } from '@/pages/Index';
