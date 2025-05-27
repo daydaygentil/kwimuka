@@ -21,6 +21,8 @@ import PriceBreakdown from "@/components/PriceBreakdown";
 import BudgetDriverFinder from "@/components/BudgetDriverFinder";
 import SocialShare from "@/components/SocialShare";
 import { UserAccount, SMSSettings } from '@/types/worker';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
 export type OrderStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
@@ -60,6 +62,7 @@ export interface JobApplication {
 }
 
 const Index = () => {
+  const { toast } = useToast();
   const [currentView, setCurrentView] = useState<ViewType>('home');
   const [userRole, setUserRole] = useState<UserRole>('customer');
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
@@ -139,6 +142,100 @@ const Index = () => {
     { id: 'driver2', name: 'Jane Smith', phone: '+250 788 123 002' },
     { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003' },
   ];
+
+  // Save order to Supabase and trigger SMS
+  const saveOrderToSupabase = async (order: Order) => {
+    try {
+      console.log('Saving order to Supabase:', order);
+
+      // Insert order into Supabase
+      const { data, error } = await supabase
+        .from('orders')
+        .insert({
+          id: order.id,
+          user_name: order.customerName,
+          phone_number: order.phoneNumber,
+          pickup_address: order.pickupAddress,
+          delivery_address: order.deliveryAddress,
+          pickup_coords: order.pickupCoords || null,
+          delivery_coords: order.deliveryCoords || null,
+          distance: order.distance || null,
+          services: order.services,
+          total_cost: order.totalCost,
+          status: order.status,
+          assigned_driver: order.assignedDriver || null,
+          assigned_driver_name: order.assignedDriverName || null,
+          assigned_driver_phone: order.assignedDriverPhone || null,
+        })
+        .select();
+
+      if (error) {
+        console.error('Error saving order to Supabase:', error);
+        toast({
+          title: "Order Save Failed",
+          description: "Failed to save order to database. Please try again.",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('Order saved successfully:', data);
+
+      // Trigger SMS notification
+      const smsMessage = `Hello ${order.customerName}, your EasyMove order #${order.id} has been confirmed! We'll contact you shortly with driver details. Total: ${order.totalCost.toLocaleString()} RWF`;
+      
+      try {
+        const { data: smsData, error: smsError } = await supabase.functions.invoke('send-order-sms', {
+          body: {
+            orderId: order.id,
+            phoneNumber: order.phoneNumber,
+            customerName: order.customerName,
+            message: smsMessage
+          }
+        });
+
+        if (smsError) {
+          console.error('Error triggering SMS:', smsError);
+          toast({
+            title: "SMS Notification Failed",
+            description: "Order saved but SMS notification failed.",
+            variant: "destructive",
+          });
+        } else if (smsData?.success) {
+          console.log('SMS triggered successfully');
+          toast({
+            title: "Order Confirmed!",
+            description: "Order saved and SMS confirmation sent successfully.",
+            variant: "default",
+          });
+        } else {
+          console.log('SMS failed:', smsData?.error);
+          toast({
+            title: "Order Confirmed",
+            description: "Order saved but SMS delivery failed. We'll contact you directly.",
+            variant: "default",
+          });
+        }
+      } catch (smsError) {
+        console.error('SMS function call failed:', smsError);
+        toast({
+          title: "Order Confirmed",
+          description: "Order saved but SMS notification encountered an error.",
+          variant: "default",
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Unexpected error saving order:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
 
   const createJobAssignments = (order: Order): JobAssignment[] => {
     const assignments: JobAssignment[] = [];
@@ -264,16 +361,27 @@ const Index = () => {
     }
   };
 
-  const handleOrderSubmit = (order: Order) => {
-    const assignments = createJobAssignments(order);
+  const handleOrderSubmit = async (order: Order) => {
+    console.log('Order submitted:', order);
     
-    setOrders(prev => [...prev, order]);
-    setJobAssignments(prev => [...prev, ...assignments]);
-    setCurrentOrder(order);
+    // Save to Supabase first
+    const saved = await saveOrderToSupabase(order);
     
-    notifyWorkers(assignments);
-    
-    setCurrentView('receipt');
+    if (saved) {
+      // Continue with existing logic
+      const assignments = createJobAssignments(order);
+      
+      setOrders(prev => [...prev, order]);
+      setJobAssignments(prev => [...prev, ...assignments]);
+      setCurrentOrder(order);
+      
+      notifyWorkers(assignments);
+      
+      setCurrentView('receipt');
+    } else {
+      // If save failed, don't proceed with the order
+      console.log('Order save failed, not proceeding');
+    }
   };
 
   const handleAcceptJob = (jobId: string) => {

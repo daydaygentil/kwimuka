@@ -9,7 +9,107 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          assigned_driver: string | null
+          assigned_driver_name: string | null
+          assigned_driver_phone: string | null
+          created_at: string
+          delivery_address: string
+          delivery_coords: Json | null
+          distance: number | null
+          id: string
+          phone_number: string
+          pickup_address: string
+          pickup_coords: Json | null
+          services: Json
+          sms_error: string | null
+          sms_status: string | null
+          status: string
+          total_cost: number
+          updated_at: string
+          user_name: string
+        }
+        Insert: {
+          assigned_driver?: string | null
+          assigned_driver_name?: string | null
+          assigned_driver_phone?: string | null
+          created_at?: string
+          delivery_address: string
+          delivery_coords?: Json | null
+          distance?: number | null
+          id: string
+          phone_number: string
+          pickup_address: string
+          pickup_coords?: Json | null
+          services: Json
+          sms_error?: string | null
+          sms_status?: string | null
+          status?: string
+          total_cost: number
+          updated_at?: string
+          user_name: string
+        }
+        Update: {
+          assigned_driver?: string | null
+          assigned_driver_name?: string | null
+          assigned_driver_phone?: string | null
+          created_at?: string
+          delivery_address?: string
+          delivery_coords?: Json | null
+          distance?: number | null
+          id?: string
+          phone_number?: string
+          pickup_address?: string
+          pickup_coords?: Json | null
+          services?: Json
+          sms_error?: string | null
+          sms_status?: string | null
+          status?: string
+          total_cost?: number
+          updated_at?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
+      sms_logs: {
+        Row: {
+          error: string | null
+          id: string
+          message: string
+          order_id: string
+          phone_number: string
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          error?: string | null
+          id?: string
+          message: string
+          order_id: string
+          phone_number: string
+          status: string
+          timestamp?: string
+        }
+        Update: {
+          error?: string | null
+          id?: string
+          message?: string
+          order_id?: string
+          phone_number?: string
+          status?: string
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
