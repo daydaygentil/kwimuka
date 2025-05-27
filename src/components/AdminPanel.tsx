@@ -511,7 +511,6 @@ const AdminPanel = ({
               <ReportsPanel 
                 orders={orders}
                 jobAssignments={jobAssignments}
-                workers={workers}
                 userAccounts={userAccounts}
               />
             </div>
