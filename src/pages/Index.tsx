@@ -72,12 +72,45 @@ const Index = () => {
     {
       id: 'admin1',
       name: 'Admin User',
-      phone: '+250 788 000 000',
+      phone: 'admin',
       password: 'admin123',
       role: 'admin',
       createdAt: new Date()
+    },
+    {
+      id: 'driver1',
+      name: 'John Driver',
+      phone: 'john',
+      password: 'john123',
+      role: 'driver',
+      createdAt: new Date()
+    },
+    {
+      id: 'helper1',
+      name: 'Helper One',
+      phone: 'helper1',
+      password: 'helper123',
+      role: 'helper',
+      createdAt: new Date()
+    },
+    {
+      id: 'cleaner1',
+      name: 'Cleaner One',
+      phone: 'cleaner1',
+      password: 'cleaner123',
+      role: 'cleaner',
+      createdAt: new Date()
+    },
+    {
+      id: 'customer1',
+      name: 'Customer User',
+      phone: 'customer',
+      password: 'customer123',
+      role: 'customer',
+      createdAt: new Date()
     }
   ]);
+  
   const [smsSettings, setSmsSettings] = useState<SMSSettings>({
     id: 'sms1',
     message: 'Hello {customerPhone}, your driver {driverName} has confirmed your order and is on the way!',

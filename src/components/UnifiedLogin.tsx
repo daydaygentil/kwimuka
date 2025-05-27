@@ -59,7 +59,7 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword, userAccou
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
+                Username
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -67,7 +67,7 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword, userAccou
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter phone number"
+                  placeholder="Enter username"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   required
                 />
@@ -131,6 +131,19 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword, userAccou
                 </p>
               </div>
             )}
+
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 text-center mb-2">
+                <strong>Demo Accounts:</strong>
+              </p>
+              <div className="space-y-1 text-xs text-gray-600">
+                <p><strong>Admin:</strong> admin / admin123</p>
+                <p><strong>Driver:</strong> john / john123</p>
+                <p><strong>Helper:</strong> helper1 / helper123</p>
+                <p><strong>Cleaner:</strong> cleaner1 / cleaner123</p>
+                <p><strong>Customer:</strong> customer / customer123</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
