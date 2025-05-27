@@ -1,5 +1,8 @@
-import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut } from "lucide-react";
+
+import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut, Navigation, X } from "lucide-react";
 import { Order, OrderStatus, UserRole } from "@/pages/Index";
+import { useState } from "react";
+import MapComponent from "./MapComponent";
 
 interface DriverViewProps {
   orders: Order[];
@@ -7,6 +10,7 @@ interface DriverViewProps {
   userName?: string;
   userRole?: UserRole;
   onUpdateOrder: (orderId: string, status: OrderStatus) => void;
+  onCancelOrder?: (orderId: string) => void;
   onLogout?: () => void;
 }
 
@@ -16,8 +20,11 @@ const DriverView = ({
   userName,
   userRole = 'driver',
   onUpdateOrder,
+  onCancelOrder,
   onLogout
 }: DriverViewProps) => {
+  const [activeOrderMap, setActiveOrderMap] = useState<string | null>(null);
+
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -50,6 +57,23 @@ const DriverView = ({
       case 'helper': return 'Helper Dashboard';
       case 'cleaner': return 'Cleaner Dashboard';
       default: return 'My Jobs';
+    }
+  };
+
+  const handleStartRide = (orderId: string) => {
+    setActiveOrderMap(activeOrderMap === orderId ? null : orderId);
+  };
+
+  const handleStartNavigation = (order: Order) => {
+    const origin = encodeURIComponent(order.pickupAddress);
+    const destination = encodeURIComponent(order.deliveryAddress);
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+    window.open(url, '_blank');
+  };
+
+  const handleCancelOrder = (orderId: string) => {
+    if (window.confirm('Are you sure you want to cancel this order?')) {
+      onCancelOrder?.(orderId);
     }
   };
 
@@ -216,15 +240,56 @@ const DriverView = ({
                   </div>
                 </div>
 
-                {(order.status === 'assigned' || order.status === 'in-progress') && (
-                  <button
-                    onClick={() => onUpdateOrder(order.id, getNextStatus(order.status))}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    {getActionButtonText(order.status)}
-                  </button>
+                {/* Map Component */}
+                {activeOrderMap === order.id && (
+                  <div className="mb-4 border-t pt-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <h4 className="font-medium text-gray-900">Route Map</h4>
+                      <button
+                        onClick={() => setActiveOrderMap(null)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <MapComponent
+                      order={order}
+                      onStartNavigation={() => handleStartNavigation(order)}
+                    />
+                  </div>
                 )}
+
+                {/* Action Buttons */}
+                <div className="space-y-2">
+                  {order.status === 'assigned' && (
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleStartRide(order.id)}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
+                      >
+                        <Navigation className="h-4 w-4 mr-2" />
+                        {activeOrderMap === order.id ? 'Hide Map' : 'Start Ride'}
+                      </button>
+                      <button
+                        onClick={() => handleCancelOrder(order.id)}
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel Order
+                      </button>
+                    </div>
+                  )}
+
+                  {(order.status === 'assigned' || order.status === 'in-progress') && (
+                    <button
+                      onClick={() => onUpdateOrder(order.id, getNextStatus(order.status))}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {getActionButtonText(order.status)}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

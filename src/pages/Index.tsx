@@ -382,6 +382,18 @@ const Index = () => {
     }
   };
 
+  const handleCancelOrder = (orderId: string) => {
+    setOrders(prev => prev.map(o => 
+      o.id === orderId ? { ...o, status: 'pending' as OrderStatus } : o
+    ));
+    
+    setJobAssignments(prev => prev.map(ja => 
+      ja.orderId === orderId ? { ...ja, status: 'pending', assignedWorker: undefined } : ja
+    ));
+    
+    console.log(`Order ${orderId} has been cancelled`);
+  };
+
   const handleSMSSettingsUpdate = (newMessage: string) => {
     setSmsSettings(prev => ({
       ...prev,
@@ -517,6 +529,7 @@ const Index = () => {
                     : ja
                 ));
               }}
+              onCancelOrder={handleCancelOrder}
               driverId={currentUserId}
               userName={currentUserName}
               userRole={userRole}
