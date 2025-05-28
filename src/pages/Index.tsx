@@ -62,6 +62,15 @@ export interface JobApplication {
   submittedAt: Date;
 }
 
+// Helper function to parse coordinates from JSON
+const parseCoordinates = (coords: any): { lat: number; lng: number } | undefined => {
+  if (!coords || typeof coords !== 'object') return undefined;
+  if (typeof coords.lat === 'number' && typeof coords.lng === 'number') {
+    return { lat: coords.lat, lng: coords.lng };
+  }
+  return undefined;
+};
+
 const Index = () => {
   const { toast } = useToast();
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -173,8 +182,8 @@ const Index = () => {
         phoneNumber: order.phone_number.toString(),
         pickupAddress: order.pickup_address,
         deliveryAddress: order.delivery_address,
-        pickupCoords: order.pickup_coords || undefined,
-        deliveryCoords: order.delivery_coords || undefined,
+        pickupCoords: parseCoordinates(order.pickup_coords),
+        deliveryCoords: parseCoordinates(order.delivery_coords),
         distance: order.distance || undefined,
         services: order.services,
         totalCost: Number(order.total_cost),
@@ -203,9 +212,8 @@ const Index = () => {
       const { data, error } = await supabase
         .from('orders')
         .insert({
-          id: order.id,
           user_name: order.customerName,
-          phone_number: order.phoneNumber,
+          phone_number: parseInt(order.phoneNumber.replace(/\D/g, '')), // Convert to number and remove non-digits
           pickup_address: order.pickupAddress,
           delivery_address: order.deliveryAddress,
           pickup_coords: order.pickupCoords || null,
