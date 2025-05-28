@@ -1,4 +1,5 @@
-import { Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star } from "lucide-react";
+
+import { Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star, CheckCircle, Eye, UserCheck, MapPin as Location, Smartphone, Apple } from "lucide-react";
 
 interface HomepageProps {
   onPlaceOrder: () => void;
@@ -33,6 +34,53 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
       title: "Key Delivery",
       description: "Secure key handover service",
       price: "5,000 RWF"
+    }
+  ];
+
+  const howItWorksSteps = [
+    {
+      icon: CheckCircle,
+      title: "Book Your Move",
+      description: "Choose your services and confirm the order."
+    },
+    {
+      icon: Eye,
+      title: "Track Your Order",
+      description: "Get real-time updates on pickup and delivery."
+    },
+    {
+      icon: UserCheck,
+      title: "Get Help",
+      description: "Our professional helpers assist with moving and cleaning."
+    },
+    {
+      icon: Location,
+      title: "Arrive Safely",
+      description: "Everything delivered with care to your new location."
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Jean-Pierre Habimana",
+      location: "Kigali",
+      rating: 5,
+      quote: "Kwimuka made my move so easy! The team was professional, on time, and took great care with my belongings. I highly recommend their services.",
+      initials: "JP"
+    },
+    {
+      name: "Marie Uwase",
+      location: "Nyarutarama", 
+      rating: 5,
+      quote: "I was impressed by how quickly they responded and completed my move. The helpers were strong and efficient, and the cleaning service left my new place spotless!",
+      initials: "MU"
+    },
+    {
+      name: "Emmanuel Ndayisaba",
+      location: "Kimihurura",
+      rating: 5,
+      quote: "The tracking system was amazing! I could see exactly when my move would happen and who was assigned. Everything arrived safely, and the team was very courteous.",
+      initials: "EN"
     }
   ];
 
@@ -97,6 +145,74 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
         </div>
       </div>
 
+      {/* How It Works Section */}
+      <div className="px-4 py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p className="text-lg text-gray-600">Our simple process makes moving easy and stress-free.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {howItWorksSteps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <div key={index} className="text-center">
+                  <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icon className="h-8 w-8 text-green-600" />
+                  </div>
+                  <div className="bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-4 text-sm font-semibold">
+                    {index + 1}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2">{step.title}</h3>
+                  <p className="text-gray-600 text-sm">{step.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Testimonials Section */}
+      <div className="px-4 py-16 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
+            <p className="text-lg text-gray-600">Don't just take our word for it. See what our satisfied customers have to say.</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center mb-4">
+                  <div className="bg-green-600 text-white w-12 h-12 rounded-full flex items-center justify-center mr-4 font-semibold">
+                    {testimonial.initials}
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
+                    <p className="text-gray-600 text-sm flex items-center">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {testimonial.location}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center mb-3">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
+                  ))}
+                  <span className="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                    Verified Customer
+                  </span>
+                </div>
+                
+                <p className="text-gray-700 text-sm italic">"{testimonial.quote}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="px-4 py-16 bg-gray-50">
         <div className="max-w-4xl mx-auto">
@@ -127,6 +243,36 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
               <p className="text-gray-600">Experienced drivers and helpers trained for safe moving.</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Download App Section - Desktop Only */}
+      <div className="hidden md:block px-4 py-16" style={{ backgroundColor: '#e6f4ea' }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">📱 Download the Kwimuka App</h2>
+          <p className="text-lg text-gray-600 mb-8">Get moving anytime, anywhere — right from your phone.</p>
+          
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <button className="bg-black text-white px-8 py-4 rounded-xl font-semibold flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow">
+              <Apple className="h-6 w-6" />
+              <div className="text-left">
+                <div className="text-xs">Download on the</div>
+                <div className="text-lg font-bold">App Store</div>
+              </div>
+            </button>
+            
+            <button className="bg-black text-white px-8 py-4 rounded-xl font-semibold flex items-center gap-3 shadow-lg hover:shadow-xl transition-shadow">
+              <Smartphone className="h-6 w-6" />
+              <div className="text-left">
+                <div className="text-xs">Get it on</div>
+                <div className="text-lg font-bold">Google Play</div>
+              </div>
+            </button>
+          </div>
+          
+          <p className="text-gray-500 text-sm mt-6">
+            Experience the convenience of booking and tracking your moves on the go.
+          </p>
         </div>
       </div>
 
