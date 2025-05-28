@@ -233,7 +233,7 @@ const Index = () => {
         .insert({
           id: order.id,
           user_name: order.customerName,
-          phone_number: parseInt(order.phoneNumber.replace(/\D/g, '')), // Convert to number and remove non-digits
+          phone_number: parseInt(order.phoneNumber.replace(/\D/g, '')),
           pickup_address: order.pickupAddress,
           delivery_address: order.deliveryAddress,
           pickup_coords: order.pickupCoords || null,
@@ -245,6 +245,7 @@ const Index = () => {
           assigned_driver: order.assignedDriver || null,
           assigned_driver_name: order.assignedDriverName || null,
           assigned_driver_phone: order.assignedDriverPhone || null,
+          service_type: order.services.transport ? 'vip' : 'standard', // Determine if VIP based on cost
         })
         .select();
 
@@ -259,6 +260,14 @@ const Index = () => {
       }
 
       console.log('Order saved successfully:', data);
+
+      // Create notification for customer
+      await supabase.from('real_notifications').insert({
+        user_id: currentUserId || 'system',
+        title: '✅ Order Confirmed!',
+        message: `Your order #${order.id} has been confirmed and is being processed.`,
+        notification_type: 'success'
+      });
 
       // Prepare SMS message
       const smsMessage = `Hello ${order.customerName}, your Kwimuka order #${order.id} has been confirmed! We'll contact you shortly with driver details. Total: ${order.totalCost.toLocaleString()} RWF`;
@@ -276,30 +285,16 @@ const Index = () => {
           }
         });
 
-        // Check for Supabase function invocation error
-        if (smsError) {
-          console.error('Supabase function invocation error:', smsError);
+        if (smsError || !smsData || smsData.success !== true) {
+          console.error('SMS service error:', smsError || smsData?.error);
           toast({
             title: "⚠️ SMS Confirmation Failed",
             description: "We saved your order, but you may not receive the SMS. Please contact support if needed.",
             variant: "destructive",
           });
-          return true; // Order was saved, just SMS failed
+          return true;
         }
 
-        // Check the response from the SMS function
-        if (!smsData || smsData.success !== true) {
-          const errorMessage = smsData?.error || 'Unknown SMS service error';
-          console.error('SMS service error:', errorMessage);
-          toast({
-            title: "⚠️ SMS Confirmation Failed",
-            description: "We saved your order, but you may not receive the SMS. Please contact support if needed.",
-            variant: "destructive",
-          });
-          return true; // Order was saved, just SMS failed
-        }
-
-        // SMS sent successfully
         console.log('SMS sent successfully');
         toast({
           title: "✅ Order Confirmed!",
@@ -307,7 +302,6 @@ const Index = () => {
           variant: "default",
         });
         
-        // Refetch orders to update the list
         refetchOrders();
         return true;
 
@@ -318,7 +312,7 @@ const Index = () => {
           description: "We saved your order, but encountered an error sending SMS. Please contact support if needed.",
           variant: "destructive",
         });
-        return true; // Order was saved, just SMS failed
+        return true;
       }
 
     } catch (error) {

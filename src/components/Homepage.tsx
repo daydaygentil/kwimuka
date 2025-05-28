@@ -1,5 +1,4 @@
-
-import { Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star, CheckCircle, Eye, UserCheck, MapPin as Location, Smartphone, Apple } from "lucide-react";
+import { Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star, CheckCircle, Eye, UserCheck, MapPin as Location, Smartphone, Apple, Crown } from "lucide-react";
 
 interface HomepageProps {
   onPlaceOrder: () => void;
@@ -34,6 +33,13 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
       title: "Key Delivery",
       description: "Secure key handover service",
       price: "5,000 RWF"
+    },
+    {
+      icon: Star,
+      title: "VIP Moving Service",
+      description: "Premium experience with certified professionals",
+      price: "140,000 RWF",
+      isVip: true
     }
   ];
 
@@ -127,17 +133,31 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Our Services</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, index) => {
               const Icon = service.icon;
               return (
-                <div key={index} className="bg-gray-50 p-6 rounded-xl hover:shadow-lg transition-shadow">
-                  <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                    <Icon className="h-6 w-6 text-green-600" />
+                <div key={index} className={`p-6 rounded-xl hover:shadow-lg transition-shadow relative ${
+                  service.isVip ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200' : 'bg-gray-50'
+                }`}>
+                  {service.isVip && (
+                    <div className="absolute -top-2 -right-2">
+                      <div className="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center">
+                        <Crown className="h-3 w-3 mr-1" />
+                        VIP
+                      </div>
+                    </div>
+                  )}
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
+                    service.isVip ? 'bg-yellow-100' : 'bg-green-100'
+                  }`}>
+                    <Icon className={`h-6 w-6 ${service.isVip ? 'text-yellow-600' : 'text-green-600'}`} />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">{service.title}</h3>
                   <p className="text-gray-600 text-sm mb-3">{service.description}</p>
-                  <p className="text-green-600 font-semibold">{service.price}</p>
+                  <p className={`font-semibold ${service.isVip ? 'text-yellow-600' : 'text-green-600'}`}>
+                    {service.price}
+                  </p>
                 </div>
               );
             })}

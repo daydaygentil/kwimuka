@@ -89,6 +89,7 @@ export type Database = {
           phone_number: number
           pickup_address: string
           pickup_coords: Json | null
+          service_type: string | null
           services: Json
           sms_error: string | null
           sms_status: string | null
@@ -109,6 +110,7 @@ export type Database = {
           phone_number: number
           pickup_address: string
           pickup_coords?: Json | null
+          service_type?: string | null
           services: Json
           sms_error?: string | null
           sms_status?: string | null
@@ -129,6 +131,7 @@ export type Database = {
           phone_number?: number
           pickup_address?: string
           pickup_coords?: Json | null
+          service_type?: string | null
           services?: Json
           sms_error?: string | null
           sms_status?: string | null
@@ -136,6 +139,39 @@ export type Database = {
           total_cost?: number
           updated_at?: string
           user_name?: string
+        }
+        Relationships: []
+      }
+      real_notifications: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string | null
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -224,6 +260,118 @@ export type Database = {
           role?: string
         }
         Relationships: []
+      }
+      worker_profiles: {
+        Row: {
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string
+          updated_at: string | null
+          user_id: string | null
+          vip_certified: boolean | null
+          worker_type: string
+        }
+        Insert: {
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone: string
+          updated_at?: string | null
+          user_id?: string | null
+          vip_certified?: boolean | null
+          worker_type: string
+        }
+        Update: {
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string
+          updated_at?: string | null
+          user_id?: string | null
+          vip_certified?: boolean | null
+          worker_type?: string
+        }
+        Relationships: []
+      }
+      worker_stats: {
+        Row: {
+          active_jobs: number | null
+          applications_count: number | null
+          id: string
+          job_count: number | null
+          total_commission: number | null
+          total_revenue: number | null
+          updated_at: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          active_jobs?: number | null
+          applications_count?: number | null
+          id?: string
+          job_count?: number | null
+          total_commission?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          active_jobs?: number | null
+          applications_count?: number | null
+          id?: string
+          job_count?: number | null
+          total_commission?: number | null
+          total_revenue?: number | null
+          updated_at?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_stats_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "worker_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      worker_status: {
+        Row: {
+          id: string
+          is_online: boolean | null
+          last_seen: string | null
+          updated_at: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          id?: string
+          is_online?: boolean | null
+          last_seen?: string | null
+          updated_at?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          id?: string
+          is_online?: boolean | null
+          last_seen?: string | null
+          updated_at?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_status_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "worker_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
