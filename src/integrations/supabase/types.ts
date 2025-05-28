@@ -9,6 +9,73 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      drivers_location: {
+        Row: {
+          driver_id: string | null
+          id: string
+          latitude: number
+          longitude: number
+          updated_at: string | null
+        }
+        Insert: {
+          driver_id?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+          updated_at?: string | null
+        }
+        Update: {
+          driver_id?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_location_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          seen: boolean | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          seen?: boolean | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          seen?: boolean | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           assigned_driver: string | null
@@ -19,7 +86,7 @@ export type Database = {
           delivery_coords: Json | null
           distance: number | null
           id: string
-          phone_number: string
+          phone_number: number
           pickup_address: string
           pickup_coords: Json | null
           services: Json
@@ -39,7 +106,7 @@ export type Database = {
           delivery_coords?: Json | null
           distance?: number | null
           id: string
-          phone_number: string
+          phone_number: number
           pickup_address: string
           pickup_coords?: Json | null
           services: Json
@@ -59,7 +126,7 @@ export type Database = {
           delivery_coords?: Json | null
           distance?: number | null
           id?: string
-          phone_number?: string
+          phone_number?: number
           pickup_address?: string
           pickup_coords?: Json | null
           services?: Json
@@ -72,13 +139,31 @@ export type Database = {
         }
         Relationships: []
       }
+      services: {
+        Row: {
+          base_price: number
+          id: string
+          name: string
+        }
+        Insert: {
+          base_price: number
+          id?: string
+          name: string
+        }
+        Update: {
+          base_price?: number
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       sms_logs: {
         Row: {
           error: string | null
           id: string
           message: string
           order_id: string
-          phone_number: string
+          phone_number: number
           status: string
           timestamp: string
         }
@@ -87,7 +172,7 @@ export type Database = {
           id?: string
           message: string
           order_id: string
-          phone_number: string
+          phone_number: number
           status: string
           timestamp?: string
         }
@@ -96,7 +181,7 @@ export type Database = {
           id?: string
           message?: string
           order_id?: string
-          phone_number?: string
+          phone_number?: number
           status?: string
           timestamp?: string
         }
@@ -109,6 +194,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          password_hash: string | null
+          phone: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          password_hash?: string | null
+          phone: string
+          role: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          password_hash?: string | null
+          phone?: string
+          role?: string
+        }
+        Relationships: []
       }
     }
     Views: {

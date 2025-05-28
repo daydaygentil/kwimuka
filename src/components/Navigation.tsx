@@ -28,7 +28,7 @@ const Navigation = ({
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2">
             <Truck className="h-8 w-8 text-green-600" />
-            <span className="text-xl font-bold text-gray-900">EasyMove</span>
+            <span className="text-xl font-bold text-gray-900">Kwimuka</span>
           </div>
 
           <div className="flex items-center space-x-6">

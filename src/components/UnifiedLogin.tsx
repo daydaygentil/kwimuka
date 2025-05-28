@@ -52,7 +52,7 @@ const UnifiedLogin = ({ onLogin, onBack, onRegister, onForgotPassword, userAccou
             <div className="bg-green-100 p-3 rounded-full w-fit mx-auto mb-4">
               <Shield className="h-8 w-8 text-green-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Login to EasyMove</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Login to Kwimuka</h1>
             <p className="text-gray-600">Access your dashboard</p>
           </div>
 

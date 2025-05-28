@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Homepage from "@/components/Homepage";
 import OrderForm from "@/components/OrderForm";
@@ -23,6 +23,7 @@ import SocialShare from "@/components/SocialShare";
 import { UserAccount, SMSSettings } from '@/types/worker';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
 export type OrderStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
@@ -143,6 +144,56 @@ const Index = () => {
     { id: 'driver3', name: 'Mike Johnson', phone: '+250 788 123 003' },
   ];
 
+  // Fetch orders from Supabase
+  const { data: supabaseOrders, refetch: refetchOrders } = useQuery({
+    queryKey: ['orders'],
+    queryFn: async () => {
+      console.log('Fetching orders from Supabase...');
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch orders from database",
+          variant: "destructive",
+        });
+        return [];
+      }
+
+      console.log('Orders fetched successfully:', data);
+      
+      // Transform Supabase data to match our Order interface
+      return (data || []).map(order => ({
+        id: order.id,
+        customerName: order.user_name,
+        phoneNumber: order.phone_number.toString(),
+        pickupAddress: order.pickup_address,
+        deliveryAddress: order.delivery_address,
+        pickupCoords: order.pickup_coords || undefined,
+        deliveryCoords: order.delivery_coords || undefined,
+        distance: order.distance || undefined,
+        services: order.services,
+        totalCost: Number(order.total_cost),
+        status: order.status as OrderStatus,
+        assignedDriver: order.assigned_driver || undefined,
+        assignedDriverName: order.assigned_driver_name || undefined,
+        assignedDriverPhone: order.assigned_driver_phone || undefined,
+        createdAt: new Date(order.created_at)
+      }));
+    }
+  });
+
+  // Update local orders when Supabase data changes
+  useEffect(() => {
+    if (supabaseOrders) {
+      setOrders(supabaseOrders);
+    }
+  }, [supabaseOrders]);
+
   // Save order to Supabase and trigger SMS with improved error handling
   const saveOrderToSupabase = async (order: Order) => {
     try {
@@ -182,7 +233,7 @@ const Index = () => {
       console.log('Order saved successfully:', data);
 
       // Prepare SMS message
-      const smsMessage = `Hello ${order.customerName}, your EasyMove order #${order.id} has been confirmed! We'll contact you shortly with driver details. Total: ${order.totalCost.toLocaleString()} RWF`;
+      const smsMessage = `Hello ${order.customerName}, your Kwimuka order #${order.id} has been confirmed! We'll contact you shortly with driver details. Total: ${order.totalCost.toLocaleString()} RWF`;
       
       // Trigger SMS notification with comprehensive error handling
       try {
@@ -227,6 +278,9 @@ const Index = () => {
           description: "Order saved and SMS confirmation sent successfully.",
           variant: "default",
         });
+        
+        // Refetch orders to update the list
+        refetchOrders();
         return true;
 
       } catch (smsError) {
@@ -384,7 +438,6 @@ const Index = () => {
       // Continue with existing logic
       const assignments = createJobAssignments(order);
       
-      setOrders(prev => [...prev, order]);
       setJobAssignments(prev => [...prev, ...assignments]);
       setCurrentOrder(order);
       
@@ -508,19 +561,50 @@ const Index = () => {
     setCurrentView('home');
   };
 
-  const handleUserRegistration = (userData: { name: string; phone: string; password: string }) => {
-    const newUser: UserAccount = {
-      id: `user_${Date.now()}`,
-      name: userData.name,
-      phone: userData.phone,
-      password: userData.password,
-      role: 'customer',
-      createdAt: new Date()
-    };
-    
-    setUserAccounts(prev => [...prev, newUser]);
-    setCurrentView('unified-login');
-    console.log('User registered successfully');
+  const handleUserRegistration = async (userData: { name: string; phone: string; password: string }) => {
+    try {
+      console.log('Registering user with Supabase Auth...');
+      
+      // Sign up with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: `${userData.phone}@kwimuka.com`, // Create a dummy email using phone
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name,
+            phone: userData.phone
+          }
+        }
+      });
+
+      if (error) {
+        console.error('Supabase signup error:', error);
+        toast({
+          title: "Registration Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('User registered successfully:', data);
+      
+      // The trigger will automatically insert into users table
+      toast({
+        title: "✅ Registration Successful!",
+        description: "Your account has been created successfully. You can now log in.",
+        variant: "default",
+      });
+      
+      setCurrentView('unified-login');
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast({
+        title: "Registration Failed",
+        description: "An unexpected error occurred during registration.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDriverConfirmation = (orderId: string, driverId: string) => {
