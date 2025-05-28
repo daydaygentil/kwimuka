@@ -71,6 +71,25 @@ const parseCoordinates = (coords: any): { lat: number; lng: number } | undefined
   return undefined;
 };
 
+// Helper function to parse services from JSON
+const parseServices = (services: any) => {
+  if (!services || typeof services !== 'object') {
+    return {
+      transport: false,
+      helpers: 0,
+      cleaning: false,
+      keyDelivery: false
+    };
+  }
+  
+  return {
+    transport: Boolean(services.transport),
+    helpers: Number(services.helpers) || 0,
+    cleaning: Boolean(services.cleaning),
+    keyDelivery: Boolean(services.keyDelivery)
+  };
+};
+
 const Index = () => {
   const { toast } = useToast();
   const [currentView, setCurrentView] = useState<ViewType>('home');
@@ -185,7 +204,7 @@ const Index = () => {
         pickupCoords: parseCoordinates(order.pickup_coords),
         deliveryCoords: parseCoordinates(order.delivery_coords),
         distance: order.distance || undefined,
-        services: order.services,
+        services: parseServices(order.services),
         totalCost: Number(order.total_cost),
         status: order.status as OrderStatus,
         assignedDriver: order.assigned_driver || undefined,
@@ -212,6 +231,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('orders')
         .insert({
+          id: order.id,
           user_name: order.customerName,
           phone_number: parseInt(order.phoneNumber.replace(/\D/g, '')), // Convert to number and remove non-digits
           pickup_address: order.pickupAddress,
