@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Calculator, Plus, Minus, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Calculator, Plus, Minus, Clock, CheckCircle } from "lucide-react";
 import { Order } from "@/pages/Index";
+import HierarchicalAddressSelector from "./HierarchicalAddressSelector";
 
 interface OrderFormProps {
   onOrderSubmit: (order: Order) => void;
@@ -24,6 +25,11 @@ const OrderForm = ({
     phoneNumber: "",
     pickupAddress: "",
     deliveryAddress: "",
+  });
+
+  const [locationData, setLocationData] = useState({
+    pickup: {},
+    delivery: {}
   });
 
   const [services, setServices] = useState({
@@ -108,9 +114,20 @@ const OrderForm = ({
       totalCost: calculateTotal(),
       status: 'pending',
       createdAt: new Date(),
+      locationData: locationData
     };
 
     onOrderSubmit(order);
+  };
+
+  const handlePickupAddressSelect = (address: string, locationInfo: any) => {
+    setFormData(prev => ({ ...prev, pickupAddress: address }));
+    setLocationData(prev => ({ ...prev, pickup: locationInfo }));
+  };
+
+  const handleDeliveryAddressSelect = (address: string, locationInfo: any) => {
+    setFormData(prev => ({ ...prev, deliveryAddress: address }));
+    setLocationData(prev => ({ ...prev, delivery: locationInfo }));
   };
 
   const getStatusColor = (status: string) => {
@@ -250,15 +267,11 @@ const OrderForm = ({
                   Pickup Address *
                 </label>
                 <div className="relative">
-                  <input
-                    type="text"
-                    required
+                  <HierarchicalAddressSelector
+                    onAddressSelect={handlePickupAddressSelect}
+                    placeholder="Select pickup location"
                     value={formData.pickupAddress}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickupAddress: e.target.value }))}
-                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Enter pickup location"
                   />
-                  <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
 
@@ -267,15 +280,11 @@ const OrderForm = ({
                   Delivery Address *
                 </label>
                 <div className="relative">
-                  <input
-                    type="text"
-                    required
+                  <HierarchicalAddressSelector
+                    onAddressSelect={handleDeliveryAddressSelect}
+                    placeholder="Select delivery location"
                     value={formData.deliveryAddress}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryAddress: e.target.value }))}
-                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Enter delivery location"
                   />
-                  <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                 </div>
               </div>
 

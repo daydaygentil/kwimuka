@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Settings, Send, UserPlus, Edit, MessageSquare, Bell } from "lucide-react";
+import { Settings, Send, UserPlus, Edit, MessageSquare, Bell, Users } from "lucide-react";
 import { UserAccount } from '@/types/worker';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import AgentPanel from './AgentPanel';
 
 interface AdminSettingsProps {
   userAccounts: UserAccount[];
@@ -12,7 +13,7 @@ interface AdminSettingsProps {
 }
 
 const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNotification }: AdminSettingsProps) => {
-  const [activeTab, setActiveTab] = useState<'sms' | 'notifications' | 'users' | 'add-user'>('sms');
+  const [activeTab, setActiveTab] = useState<'sms' | 'notifications' | 'users' | 'add-user' | 'agents'>('sms');
   const [smsPhone, setSmsPhone] = useState("");
   const [smsMessage, setSmsMessage] = useState("");
   const [notificationUserId, setNotificationUserId] = useState("");
@@ -124,10 +125,10 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
       </div>
 
       <div className="border-b border-gray-200">
-        <nav className="flex space-x-8 px-6">
+        <nav className="flex space-x-8 px-6 overflow-x-auto">
           <button
             onClick={() => setActiveTab('sms')}
-            className={`py-4 border-b-2 font-medium text-sm ${
+            className={`py-4 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'sms'
                 ? 'border-green-500 text-green-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -137,7 +138,7 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
           </button>
           <button
             onClick={() => setActiveTab('notifications')}
-            className={`py-4 border-b-2 font-medium text-sm ${
+            className={`py-4 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'notifications'
                 ? 'border-green-500 text-green-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -147,7 +148,7 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`py-4 border-b-2 font-medium text-sm ${
+            className={`py-4 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'users'
                 ? 'border-green-500 text-green-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -157,13 +158,24 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
           </button>
           <button
             onClick={() => setActiveTab('add-user')}
-            className={`py-4 border-b-2 font-medium text-sm ${
+            className={`py-4 border-b-2 font-medium text-sm whitespace-nowrap ${
               activeTab === 'add-user'
                 ? 'border-green-500 text-green-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             Add User
+          </button>
+          <button
+            onClick={() => setActiveTab('agents')}
+            className={`py-4 border-b-2 font-medium text-sm whitespace-nowrap ${
+              activeTab === 'agents'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Users className="h-4 w-4 inline mr-1" />
+            Agent Panel
           </button>
         </nav>
       </div>
@@ -378,6 +390,10 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
               <span>Add User</span>
             </button>
           </div>
+        )}
+
+        {activeTab === 'agents' && (
+          <AgentPanel />
         )}
       </div>
 
