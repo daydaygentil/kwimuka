@@ -9,100 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      agent_commissions: {
-        Row: {
-          agent_id: string
-          amount: number
-          commission_rate: number | null
-          created_at: string
-          id: string
-          order_id: string
-          service_provider_id: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          agent_id: string
-          amount?: number
-          commission_rate?: number | null
-          created_at?: string
-          id?: string
-          order_id: string
-          service_provider_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          agent_id?: string
-          amount?: number
-          commission_rate?: number | null
-          created_at?: string
-          id?: string
-          order_id?: string
-          service_provider_id?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agent_commissions_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_commissions_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agent_commissions_service_provider_id_fkey"
-            columns: ["service_provider_id"]
-            isOneToOne: false
-            referencedRelation: "service_providers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      agents: {
-        Row: {
-          created_at: string
-          email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string
-          registered_on: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          phone: string
-          registered_on?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          phone?: string
-          registered_on?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       drivers_location: {
         Row: {
           driver_id: string | null
@@ -172,28 +78,17 @@ export type Database = {
       }
       orders: {
         Row: {
-          agent_id: string | null
           assigned_driver: string | null
           assigned_driver_name: string | null
           assigned_driver_phone: string | null
           created_at: string
           delivery_address: string
-          delivery_cell: string | null
           delivery_coords: Json | null
-          delivery_district: string | null
-          delivery_province: string | null
-          delivery_sector: string | null
-          delivery_village: string | null
           distance: number | null
           id: string
           phone_number: number
           pickup_address: string
-          pickup_cell: string | null
           pickup_coords: Json | null
-          pickup_district: string | null
-          pickup_province: string | null
-          pickup_sector: string | null
-          pickup_village: string | null
           service_type: string | null
           services: Json
           sms_error: string | null
@@ -204,28 +99,17 @@ export type Database = {
           user_name: string
         }
         Insert: {
-          agent_id?: string | null
           assigned_driver?: string | null
           assigned_driver_name?: string | null
           assigned_driver_phone?: string | null
           created_at?: string
           delivery_address: string
-          delivery_cell?: string | null
           delivery_coords?: Json | null
-          delivery_district?: string | null
-          delivery_province?: string | null
-          delivery_sector?: string | null
-          delivery_village?: string | null
           distance?: number | null
           id: string
           phone_number: number
           pickup_address: string
-          pickup_cell?: string | null
           pickup_coords?: Json | null
-          pickup_district?: string | null
-          pickup_province?: string | null
-          pickup_sector?: string | null
-          pickup_village?: string | null
           service_type?: string | null
           services: Json
           sms_error?: string | null
@@ -236,28 +120,17 @@ export type Database = {
           user_name: string
         }
         Update: {
-          agent_id?: string | null
           assigned_driver?: string | null
           assigned_driver_name?: string | null
           assigned_driver_phone?: string | null
           created_at?: string
           delivery_address?: string
-          delivery_cell?: string | null
           delivery_coords?: Json | null
-          delivery_district?: string | null
-          delivery_province?: string | null
-          delivery_sector?: string | null
-          delivery_village?: string | null
           distance?: number | null
           id?: string
           phone_number?: number
           pickup_address?: string
-          pickup_cell?: string | null
           pickup_coords?: Json | null
-          pickup_district?: string | null
-          pickup_province?: string | null
-          pickup_sector?: string | null
-          pickup_village?: string | null
           service_type?: string | null
           services?: Json
           sms_error?: string | null
@@ -267,15 +140,7 @@ export type Database = {
           updated_at?: string
           user_name?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "orders_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       real_notifications: {
         Row: {
@@ -309,83 +174,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
-      }
-      rwanda_locations: {
-        Row: {
-          cell: string | null
-          created_at: string
-          district: string | null
-          full_address: string | null
-          id: string
-          province: string
-          sector: string | null
-          village: string | null
-        }
-        Insert: {
-          cell?: string | null
-          created_at?: string
-          district?: string | null
-          full_address?: string | null
-          id?: string
-          province: string
-          sector?: string | null
-          village?: string | null
-        }
-        Update: {
-          cell?: string | null
-          created_at?: string
-          district?: string | null
-          full_address?: string | null
-          id?: string
-          province?: string
-          sector?: string | null
-          village?: string | null
-        }
-        Relationships: []
-      }
-      service_providers: {
-        Row: {
-          created_at: string
-          email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string
-          registered_by_agent_id: string | null
-          service_type: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          phone: string
-          registered_by_agent_id?: string | null
-          service_type: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          phone?: string
-          registered_by_agent_id?: string | null
-          service_type?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_providers_registered_by_agent_id_fkey"
-            columns: ["registered_by_agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       services: {
         Row: {
