@@ -1,5 +1,6 @@
+
 import { CheckCircle, Clock, Truck, MapPin } from "lucide-react";
-import { OrderStatus } from "@/types";
+import { OrderStatus } from "@/pages/Index";
 
 interface OrderStatusTrackerProps {
   status: OrderStatus;

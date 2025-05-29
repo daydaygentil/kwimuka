@@ -1,11 +1,11 @@
 
 import { Truck, User, Settings, HelpCircle, LogOut, LogIn } from "lucide-react";
-import { UserRole, ViewType } from "@/types";
+import { UserRole, ViewType } from "@/pages/Index";
 import SocialShare from "@/components/SocialShare";
 
 interface NavigationProps {
   currentView: string;
-  setCurrentView: (view: ViewType) => void;
+  setCurrentView: (view: string) => void;
   userRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   isAuthenticated?: boolean;

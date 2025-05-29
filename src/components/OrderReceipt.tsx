@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { ArrowLeft, Printer, Search, CheckCircle } from "lucide-react";
-import { Order } from "@/types";
+import { Order } from "@/pages/Index";
 import OrderStatusTracker from "@/components/OrderStatusTracker";
 
 interface OrderReceiptProps {

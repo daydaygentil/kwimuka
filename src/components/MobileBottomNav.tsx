@@ -1,10 +1,10 @@
 
 import { Home, Plus, Truck, Settings, Search, HelpCircle, LogOut, LogIn, User } from "lucide-react";
-import { UserRole, ViewType } from "@/types";
+import { UserRole } from "@/pages/Index";
 
 interface MobileBottomNavProps {
   currentView: string;
-  setCurrentView: (view: ViewType) => void;
+  setCurrentView: (view: string) => void;
   userRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   isAuthenticated?: boolean;
