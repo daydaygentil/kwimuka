@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -181,10 +182,10 @@ const Index = () => {
     });
   };
 
-  const handleUpdateOrder = (orderId: string, status: OrderStatus) => {
+  const handleUpdateOrder = (orderId: string, updates: Partial<Order>) => {
     setUserOrders(prev => 
       prev.map(order => 
-        order.id === orderId ? { ...order, status } : order
+        order.id === orderId ? { ...order, ...updates } : order
       )
     );
   };
