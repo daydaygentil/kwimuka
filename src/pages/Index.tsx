@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -190,6 +189,10 @@ const Index = () => {
     );
   };
 
+  const handleDriverOrderUpdate = (orderId: string, status: OrderStatus) => {
+    handleUpdateOrder(orderId, { status });
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsAuthenticated(false);
@@ -304,7 +307,7 @@ const Index = () => {
           <DriverView 
             orders={userOrders}
             driverId={currentUserName || ''}
-            onUpdateOrder={handleUpdateOrder}
+            onUpdateOrder={handleDriverOrderUpdate}
           />
         } />
         <Route path="/admin-panel" element={
