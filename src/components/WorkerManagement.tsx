@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 import { Users, Plus, Search, Filter, Star, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { WorkerType } from '@/types/worker';
 
 interface Worker {
   id: string;
   name: string;
   phone: string;
-  worker_type: 'driver' | 'helper' | 'cleaner';
+  worker_type: WorkerType;
   is_active: boolean;
   vip_certified: boolean;
   commission_rate: number;
@@ -38,7 +39,7 @@ const WorkerManagement = ({ isAdmin = false }: WorkerManagementProps) => {
   const [newWorker, setNewWorker] = useState({
     name: '',
     phone: '',
-    worker_type: 'driver' as 'driver' | 'helper' | 'cleaner',
+    worker_type: 'driver' as WorkerType,
     vip_certified: false,
     commission_rate: 0.15
   });
@@ -58,7 +59,13 @@ const WorkerManagement = ({ isAdmin = false }: WorkerManagementProps) => {
 
       if (statsError) throw statsError;
 
-      setWorkers(workersData || []);
+      // Type the workers data properly
+      const typedWorkers: Worker[] = (workersData || []).map(worker => ({
+        ...worker,
+        worker_type: worker.worker_type as WorkerType
+      }));
+
+      setWorkers(typedWorkers);
       
       // Organize stats by worker_id
       const statsMap: Record<string, WorkerStats> = {};
@@ -332,7 +339,7 @@ const WorkerManagement = ({ isAdmin = false }: WorkerManagementProps) => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Worker Type</label>
                 <select
                   value={newWorker.worker_type}
-                  onChange={(e) => setNewWorker(prev => ({ ...prev, worker_type: e.target.value as any }))}
+                  onChange={(e) => setNewWorker(prev => ({ ...prev, worker_type: e.target.value as WorkerType }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="driver">Driver</option>
