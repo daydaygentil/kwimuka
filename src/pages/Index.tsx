@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,35 +17,17 @@ import { Toaster } from "@/components/ui/toaster";
 import Navigation from "@/components/Navigation";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useToast } from "@/hooks/use-toast";
+import { Order, OrderStatus, UserRole, ViewType, JobApplication } from "@/types";
 import '@/utils/populateRwandaLocations';
-
-export interface Order {
-  id: string;
-  customerName: string;
-  phoneNumber: string;
-  pickupAddress: string;
-  deliveryAddress: string;
-  services: {
-    transport: boolean;
-    helpers: number;
-    cleaning: boolean;
-    keyDelivery: boolean;
-  };
-  distance: number;
-  totalCost: number;
-  status: 'pending' | 'assigned' | 'in-progress' | 'completed';
-  createdAt: Date;
-  locationData?: {
-    pickup: any;
-    delivery: any;
-  };
-}
 
 const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserName, setCurrentUserName] = useState<string | null>(null);
   const [currentUserPhone, setCurrentUserPhone] = useState<string | null>(null);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [currentView, setCurrentView] = useState<ViewType>('home');
+  const [userRole, setUserRole] = useState<UserRole>('customer');
+  const [jobApplications, setJobApplications] = useState<JobApplication[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -85,18 +68,19 @@ const Index = () => {
     if (!user) return;
 
     try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+      const { data: userData, error: userError } = await supabase
+        .from('users')
         .select('*')
         .eq('id', (await user).data?.user?.id)
         .single();
 
-      if (profileError) {
-        throw profileError;
+      if (userError) {
+        throw userError;
       }
 
-      setCurrentUserName(profileData?.full_name || null);
-      setCurrentUserPhone(profileData?.phone_number || null);
+      setCurrentUserName(userData?.name || null);
+      setCurrentUserPhone(userData?.phone || null);
+      setUserRole(userData?.role as UserRole || 'customer');
     } catch (error: any) {
       console.error("Error fetching user profile:", error.message);
       toast({
@@ -110,14 +94,30 @@ const Index = () => {
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('*')
-        .eq('user_id', (await user).data?.user?.id)
         .order('created_at', { ascending: false });
 
       if (ordersError) {
         throw ordersError;
       }
 
-      setUserOrders(orders || []);
+      // Transform database orders to match our Order interface
+      const transformedOrders: Order[] = (orders || []).map(order => ({
+        id: order.id,
+        customerName: order.user_name,
+        phoneNumber: order.phone_number.toString(),
+        pickupAddress: order.pickup_address,
+        deliveryAddress: order.delivery_address,
+        services: order.services as any,
+        distance: order.distance || 0,
+        totalCost: order.total_cost,
+        status: order.status as OrderStatus,
+        createdAt: new Date(order.created_at),
+        assignedDriver: order.assigned_driver,
+        assignedDriverName: order.assigned_driver_name,
+        assignedDriverPhone: order.assigned_driver_phone,
+      }));
+
+      setUserOrders(transformedOrders);
     } catch (error: any) {
       console.error("Error fetching user orders:", error.message);
       toast({
@@ -143,8 +143,15 @@ const Index = () => {
       const { error } = await supabase
         .from('orders')
         .insert({
-          ...order,
-          user_id: (await user).data?.user?.id,
+          id: order.id,
+          user_name: order.customerName,
+          phone_number: parseInt(order.phoneNumber),
+          pickup_address: order.pickupAddress,
+          delivery_address: order.deliveryAddress,
+          services: order.services,
+          distance: order.distance,
+          total_cost: order.totalCost,
+          status: order.status,
         });
 
       if (error) {
@@ -167,23 +174,69 @@ const Index = () => {
     }
   };
 
+  const handleJobApplicationSubmit = (application: JobApplication) => {
+    setJobApplications(prev => [...prev, application]);
+    toast({
+      title: "Success",
+      description: "Job application submitted successfully!",
+    });
+  };
+
+  const handleUpdateOrder = (orderId: string, status: OrderStatus) => {
+    setUserOrders(prev => 
+      prev.map(order => 
+        order.id === orderId ? { ...order, status } : order
+      )
+    );
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsAuthenticated(false);
     navigate('/login');
   };
 
+  const handleRoleChange = (role: UserRole) => {
+    setUserRole(role);
+  };
+
   return (
     <>
       <Toaster />
-      <Navigation isAuthenticated={isAuthenticated} onLogout={handleLogout} />
+      <Navigation 
+        isAuthenticated={isAuthenticated} 
+        onLogout={handleLogout}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        userRole={userRole}
+        onRoleChange={handleRoleChange}
+      />
 
       <Routes>
-        <Route path="/" element={<Homepage />} />
-        <Route path="/login" element={<UnifiedLogin />} />
-        <Route path="/terms" element={<TermsAndConditions />} />
-        <Route path="/help" element={<HelpPage />} />
-        <Route path="/apply-jobs" element={<ApplyJobs />} />
+        <Route path="/" element={
+          <Homepage 
+            onPlaceOrder={() => navigate('/order')}
+            onTrackOrder={() => navigate('/track-order/search')}
+            onApplyJobs={() => navigate('/apply-jobs')}
+            onHelp={() => navigate('/help')}
+            onTerms={() => navigate('/terms')}
+          />
+        } />
+        <Route path="/login" element={
+          <UnifiedLogin 
+            onLogin={() => setIsAuthenticated(true)}
+            onBack={() => navigate('/')}
+            userAccounts={[]}
+          />
+        } />
+        <Route path="/terms" element={<TermsAndConditions onBack={() => navigate('/')} />} />
+        <Route path="/help" element={<HelpPage onBack={() => navigate('/')} />} />
+        <Route path="/apply-jobs" element={
+          <ApplyJobs 
+            onSubmitApplication={handleJobApplicationSubmit}
+            onBack={() => navigate('/')}
+          />
+        } />
         <Route
           path="/order"
           element={
@@ -197,20 +250,57 @@ const Index = () => {
                 userOrders={userOrders}
               />
             ) : (
-              <UnifiedLogin />
+              <UnifiedLogin 
+                onLogin={() => setIsAuthenticated(true)}
+                onBack={() => navigate('/')}
+                userAccounts={[]}
+              />
             )
           }
         />
-        <Route path="/track-order/:orderId" element={<TrackOrder />} />
-        <Route path="/driver-view" element={<DriverView />} />
-        <Route path="/admin-panel" element={<AdminPanel />} />
+        <Route path="/track-order/:orderId" element={
+          <TrackOrder 
+            orders={userOrders}
+            jobAssignments={[]}
+            onBack={() => navigate('/')}
+          />
+        } />
+        <Route path="/driver-view" element={
+          <DriverView 
+            orders={userOrders}
+            driverId={currentUserName || ''}
+            onUpdateOrder={handleUpdateOrder}
+          />
+        } />
+        <Route path="/admin-panel" element={
+          <AdminPanel 
+            orders={userOrders}
+            jobApplications={jobApplications}
+            jobAssignments={[]}
+            workers={[]}
+            onAssignOrder={() => {}}
+            onUpdateOrderStatus={handleUpdateOrder}
+            onApproveApplication={() => {}}
+            onRejectApplication={() => {}}
+          />
+        } />
         <Route path="/agent-panel" element={<AgentPanel />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {isAuthenticated && <MobileBottomNav />}
+      {isAuthenticated && (
+        <MobileBottomNav 
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          userRole={userRole}
+          onRoleChange={handleRoleChange}
+          isAuthenticated={isAuthenticated}
+          onLogout={handleLogout}
+        />
+      )}
     </>
   );
 };
 
 export default Index;
+export type { Order, OrderStatus, UserRole, ViewType, JobApplication };

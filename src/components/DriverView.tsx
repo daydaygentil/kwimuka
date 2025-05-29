@@ -1,6 +1,6 @@
 
 import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut, Navigation, X } from "lucide-react";
-import { Order, OrderStatus, UserRole } from "@/pages/Index";
+import { Order, OrderStatus, UserRole } from "@/types";
 import { useState } from "react";
 import MapComponent from "./MapComponent";
 

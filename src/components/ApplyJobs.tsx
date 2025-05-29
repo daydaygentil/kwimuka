@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { ArrowLeft, Users, Sparkles, Truck, Send } from "lucide-react";
-import { JobApplication } from "@/pages/Index";
+import { JobApplication } from "@/types";
 
 interface ApplyJobsProps {
   onSubmitApplication: (application: JobApplication) => void;

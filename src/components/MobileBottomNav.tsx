@@ -1,6 +1,5 @@
-
 import { Home, Plus, Truck, Settings, Search, HelpCircle, LogOut, LogIn, User } from "lucide-react";
-import { UserRole } from "@/pages/Index";
+import { UserRole } from "@/types";
 
 interface MobileBottomNavProps {
   currentView: string;
