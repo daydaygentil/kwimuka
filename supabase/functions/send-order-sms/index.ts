@@ -20,6 +20,46 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+async function sendTwilioSMS(to: string, body: string): Promise<{ success: boolean; error?: string }> {
+  const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
+  const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
+  const fromNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
+
+  if (!accountSid || !authToken || !fromNumber) {
+    return { success: false, error: 'Twilio credentials not configured' };
+  }
+
+  try {
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+    const credentials = btoa(`${accountSid}:${authToken}`);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        To: to,
+        From: fromNumber,
+        Body: body,
+      }),
+    });
+
+    if (response.ok) {
+      console.log(`SMS sent successfully via Twilio to ${to}`);
+      return { success: true };
+    } else {
+      const errorData = await response.text();
+      console.error('Twilio API error:', errorData);
+      return { success: false, error: `Twilio API error: ${response.status}` };
+    }
+  } catch (error) {
+    console.error('Error sending SMS via Twilio:', error);
+    return { success: false, error: `Network error: ${error.message}` };
+  }
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -31,11 +71,14 @@ serve(async (req: Request) => {
     
     console.log(`Sending SMS for order ${orderId} to ${phoneNumber}`);
 
-    // Simulate SMS sending (in a real implementation, you'd use a service like Twilio)
-    const smsSuccess = Math.random() > 0.1; // 90% success rate for demo
+    // Format phone number for Twilio (ensure it starts with +)
+    const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+    
+    // Send SMS via Twilio
+    const smsResult = await sendTwilioSMS(formattedPhone, message);
     const timestamp = new Date().toISOString();
     
-    if (smsSuccess) {
+    if (smsResult.success) {
       // Log successful SMS
       const { error: logError } = await supabase
         .from('sms_logs')
@@ -69,7 +112,7 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'SMS sent successfully',
+          message: 'SMS sent successfully via Twilio',
           orderId: orderId
         }),
         {
@@ -78,14 +121,7 @@ serve(async (req: Request) => {
         }
       );
     } else {
-      // Simulate SMS failure with different types of errors
-      const errorTypes = [
-        'SMS gateway timeout',
-        'Invalid phone number format',
-        'Network connectivity issue',
-        'SMS service temporarily unavailable'
-      ];
-      const errorMessage = errorTypes[Math.floor(Math.random() * errorTypes.length)];
+      const errorMessage = smsResult.error || 'Unknown Twilio error';
       
       // Log failed SMS
       const { error: logError } = await supabase
@@ -118,7 +154,6 @@ serve(async (req: Request) => {
 
       console.log(`SMS failed for ${phoneNumber} for order ${orderId}: ${errorMessage}`);
       
-      // Return clear failure response with 500 status as requested
       return new Response(
         JSON.stringify({ 
           success: false, 

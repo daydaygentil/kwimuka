@@ -1,7 +1,8 @@
-
 import { useState } from "react";
 import { Settings, Send, UserPlus, Edit, MessageSquare, Bell } from "lucide-react";
 import { UserAccount } from '@/types/worker';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminSettingsProps {
   userAccounts: UserAccount[];
@@ -24,13 +25,47 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
     password: "",
     role: "customer" as "customer" | "driver" | "helper" | "cleaner" | "admin"
   });
+  const [isSending, setIsSending] = useState(false);
+  const { toast } = useToast();
 
-  const handleSendSMS = () => {
+  const handleSendSMS = async () => {
     if (smsPhone && smsMessage) {
-      onSendSMS(smsPhone, smsMessage);
-      setSmsPhone("");
-      setSmsMessage("");
-      alert("SMS sent successfully!");
+      setIsSending(true);
+      try {
+        // Call the Supabase edge function
+        const { data, error } = await supabase.functions.invoke('send-order-sms', {
+          body: {
+            orderId: `admin_${Date.now()}`,
+            phoneNumber: smsPhone,
+            customerName: 'Admin',
+            message: smsMessage
+          }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.success) {
+          setSmsPhone("");
+          setSmsMessage("");
+          toast({
+            title: "Success",
+            description: "SMS sent successfully!",
+          });
+        } else {
+          throw new Error(data?.error || 'Failed to send SMS');
+        }
+      } catch (error: any) {
+        console.error('Error sending SMS:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to send SMS",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSending(false);
+      }
     }
   };
 
@@ -146,9 +181,10 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
                   type="text"
                   value={smsPhone}
                   onChange={(e) => setSmsPhone(e.target.value)}
-                  placeholder="+250 788 123 456"
+                  placeholder="+250788123456"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
+                <p className="text-xs text-gray-500 mt-1">Include country code (e.g., +250788123456)</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -164,10 +200,11 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
               </div>
               <button
                 onClick={handleSendSMS}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                disabled={!smsPhone || !smsMessage || isSending}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <Send className="h-4 w-4" />
-                <span>Send SMS</span>
+                <span>{isSending ? 'Sending...' : 'Send SMS'}</span>
               </button>
             </div>
           </div>
