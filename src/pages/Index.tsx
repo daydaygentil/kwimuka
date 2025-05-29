@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -200,6 +199,40 @@ const Index = () => {
     setUserRole(role);
   };
 
+  const handleViewChange = (view: ViewType) => {
+    setCurrentView(view);
+  };
+
+  // Mock data for missing props
+  const mockWorkers = [];
+  const mockJobAssignments = [];
+  const mockNotifications = [];
+  const mockUserAccounts = [];
+  const mockAvailableDrivers = [
+    { id: '1', name: 'John Doe', phone: '+250781234567' },
+    { id: '2', name: 'Jane Smith', phone: '+250782345678' },
+  ];
+
+  const handleUpdateJobApplication = (applicationId: string, status: 'pending' | 'approved' | 'rejected') => {
+    setJobApplications(prev => 
+      prev.map(app => 
+        app.id === applicationId ? { ...app, status } : app
+      )
+    );
+  };
+
+  const handleUpdateUserAccounts = (accounts: any[]) => {
+    console.log('Update user accounts:', accounts);
+  };
+
+  const handleSendSMS = (phone: string, message: string) => {
+    console.log(`SMS sent to ${phone}: ${message}`);
+  };
+
+  const handleSendNotification = (userId: string, message: string, type: 'email' | 'push' | 'sms') => {
+    console.log(`${type} notification sent to user ${userId}: ${message}`);
+  };
+
   return (
     <>
       <Toaster />
@@ -207,9 +240,10 @@ const Index = () => {
         isAuthenticated={isAuthenticated} 
         onLogout={handleLogout}
         currentView={currentView}
-        setCurrentView={setCurrentView}
+        setCurrentView={handleViewChange}
         userRole={userRole}
         onRoleChange={handleRoleChange}
+        currentUserName={currentUserName || undefined}
       />
 
       <Routes>
@@ -276,12 +310,15 @@ const Index = () => {
           <AdminPanel 
             orders={userOrders}
             jobApplications={jobApplications}
-            jobAssignments={[]}
-            workers={[]}
-            onAssignOrder={() => {}}
-            onUpdateOrderStatus={handleUpdateOrder}
-            onApproveApplication={() => {}}
-            onRejectApplication={() => {}}
+            jobAssignments={mockJobAssignments}
+            workers={mockWorkers}
+            notifications={mockNotifications}
+            userAccounts={mockUserAccounts}
+            onUpdateOrder={handleUpdateOrder}
+            onUpdateJobApplication={handleUpdateJobApplication}
+            onUpdateUserAccounts={handleUpdateUserAccounts}
+            availableDrivers={mockAvailableDrivers}
+            onLogout={handleLogout}
           />
         } />
         <Route path="/agent-panel" element={<AgentPanel />} />
@@ -291,7 +328,7 @@ const Index = () => {
       {isAuthenticated && (
         <MobileBottomNav 
           currentView={currentView}
-          setCurrentView={setCurrentView}
+          setCurrentView={handleViewChange}
           userRole={userRole}
           onRoleChange={handleRoleChange}
           isAuthenticated={isAuthenticated}
