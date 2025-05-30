@@ -9,6 +9,145 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_commissions: {
+        Row: {
+          agent_id: string
+          amount: number
+          commission_rate: number | null
+          created_at: string
+          id: string
+          order_id: string
+          service_provider_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          amount?: number
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          order_id: string
+          service_provider_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          commission_rate?: number | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          service_provider_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_commissions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_commissions_service_provider_id_fkey"
+            columns: ["service_provider_id"]
+            isOneToOne: false
+            referencedRelation: "service_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_jobs: {
+        Row: {
+          agent_id: string
+          commission_amount: number | null
+          created_at: string
+          id: string
+          order_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          commission_amount?: number | null
+          created_at?: string
+          id?: string
+          order_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          commission_amount?: number | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_jobs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_jobs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string
+          registered_on: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone: string
+          registered_on?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string
+          registered_on?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       drivers_location: {
         Row: {
           driver_id: string | null
@@ -40,6 +179,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      job_applications: {
+        Row: {
+          created_at: string
+          id: string
+          job_role: string
+          message: string | null
+          name: string
+          phone: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_role: string
+          message?: string | null
+          name: string
+          phone: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_role?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -78,69 +250,160 @@ export type Database = {
       }
       orders: {
         Row: {
+          agent_id: string | null
           assigned_driver: string | null
           assigned_driver_name: string | null
           assigned_driver_phone: string | null
           created_at: string
           delivery_address: string
+          delivery_cell: string | null
           delivery_coords: Json | null
+          delivery_district: string | null
+          delivery_province: string | null
+          delivery_sector: string | null
+          delivery_village: string | null
           distance: number | null
           id: string
+          is_vip: boolean | null
           phone_number: number
           pickup_address: string
+          pickup_cell: string | null
           pickup_coords: Json | null
+          pickup_district: string | null
+          pickup_province: string | null
+          pickup_sector: string | null
+          pickup_village: string | null
           service_type: string | null
           services: Json
           sms_error: string | null
           sms_status: string | null
+          special_items_description: string | null
           status: string
           total_cost: number
           updated_at: string
           user_name: string
         }
         Insert: {
+          agent_id?: string | null
           assigned_driver?: string | null
           assigned_driver_name?: string | null
           assigned_driver_phone?: string | null
           created_at?: string
           delivery_address: string
+          delivery_cell?: string | null
           delivery_coords?: Json | null
+          delivery_district?: string | null
+          delivery_province?: string | null
+          delivery_sector?: string | null
+          delivery_village?: string | null
           distance?: number | null
           id: string
+          is_vip?: boolean | null
           phone_number: number
           pickup_address: string
+          pickup_cell?: string | null
           pickup_coords?: Json | null
+          pickup_district?: string | null
+          pickup_province?: string | null
+          pickup_sector?: string | null
+          pickup_village?: string | null
           service_type?: string | null
           services: Json
           sms_error?: string | null
           sms_status?: string | null
+          special_items_description?: string | null
           status?: string
           total_cost: number
           updated_at?: string
           user_name: string
         }
         Update: {
+          agent_id?: string | null
           assigned_driver?: string | null
           assigned_driver_name?: string | null
           assigned_driver_phone?: string | null
           created_at?: string
           delivery_address?: string
+          delivery_cell?: string | null
           delivery_coords?: Json | null
+          delivery_district?: string | null
+          delivery_province?: string | null
+          delivery_sector?: string | null
+          delivery_village?: string | null
           distance?: number | null
           id?: string
+          is_vip?: boolean | null
           phone_number?: number
           pickup_address?: string
+          pickup_cell?: string | null
           pickup_coords?: Json | null
+          pickup_district?: string | null
+          pickup_province?: string | null
+          pickup_sector?: string | null
+          pickup_village?: string | null
           service_type?: string | null
           services?: Json
           sms_error?: string | null
           sms_status?: string | null
+          special_items_description?: string | null
           status?: string
           total_cost?: number
           updated_at?: string
           user_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          order_id: string
+          payment_method: string
+          payment_timing: string
+          status: string
+          transaction_ref: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          order_id: string
+          payment_method: string
+          payment_timing: string
+          status?: string
+          transaction_ref?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          payment_method?: string
+          payment_timing?: string
+          status?: string
+          transaction_ref?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       real_notifications: {
         Row: {
@@ -174,6 +437,83 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      rwanda_locations: {
+        Row: {
+          cell: string | null
+          created_at: string
+          district: string | null
+          full_address: string | null
+          id: string
+          province: string
+          sector: string | null
+          village: string | null
+        }
+        Insert: {
+          cell?: string | null
+          created_at?: string
+          district?: string | null
+          full_address?: string | null
+          id?: string
+          province: string
+          sector?: string | null
+          village?: string | null
+        }
+        Update: {
+          cell?: string | null
+          created_at?: string
+          district?: string | null
+          full_address?: string | null
+          id?: string
+          province?: string
+          sector?: string | null
+          village?: string | null
+        }
+        Relationships: []
+      }
+      service_providers: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string
+          registered_by_agent_id: string | null
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone: string
+          registered_by_agent_id?: string | null
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string
+          registered_by_agent_id?: string | null
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_providers_registered_by_agent_id_fkey"
+            columns: ["registered_by_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
@@ -227,6 +567,51 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_notifications: {
+        Row: {
+          admin_id: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -379,7 +764,7 @@ export type Database = {
     }
     Functions: {
       calculate_total: {
-        Args: { service_list: string[] }
+        Args: Record<PropertyKey, never> | { service_list: string[] }
         Returns: number
       }
     }

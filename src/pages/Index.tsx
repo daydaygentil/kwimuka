@@ -24,6 +24,8 @@ import { UserAccount, SMSSettings } from '@/types/worker';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useJobApplications } from "@/hooks/useJobApplications";
 
 export type UserRole = 'customer' | 'driver' | 'admin' | 'helper' | 'cleaner';
 export type OrderStatus = 'pending' | 'assigned' | 'in-progress' | 'completed';
@@ -50,6 +52,10 @@ export interface Order {
   assignedDriverName?: string;
   assignedDriverPhone?: string;
   createdAt: Date;
+  isVip?: boolean;
+  specialItemsDescription?: string;
+  paymentMethod?: string;
+  paymentTiming?: 'prepay' | 'pay_after';
 }
 
 export interface JobApplication {
@@ -100,6 +106,11 @@ const Index = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserName, setCurrentUserName] = useState<string>('');
+  
+  // Initialize hooks
+  const { notifications: realNotifications, unreadCount, markAsRead, createNotification } = useNotifications(currentUserId);
+  const { submitJobApplication, isSubmitting: isSubmittingJob } = useJobApplications();
+
   const [userAccounts, setUserAccounts] = useState<UserAccount[]>([
     {
       id: 'admin1',
@@ -210,7 +221,9 @@ const Index = () => {
         assignedDriver: order.assigned_driver || undefined,
         assignedDriverName: order.assigned_driver_name || undefined,
         assignedDriverPhone: order.assigned_driver_phone || undefined,
-        createdAt: new Date(order.created_at)
+        createdAt: new Date(order.created_at),
+        isVip: order.is_vip || false,
+        specialItemsDescription: order.special_items_description || undefined,
       }));
     }
   });
@@ -245,7 +258,9 @@ const Index = () => {
           assigned_driver: order.assignedDriver || null,
           assigned_driver_name: order.assignedDriverName || null,
           assigned_driver_phone: order.assignedDriverPhone || null,
-          service_type: order.services.transport ? 'vip' : 'standard', // Determine if VIP based on cost
+          service_type: order.isVip ? 'vip' : 'standard',
+          is_vip: order.isVip || false,
+          special_items_description: order.specialItemsDescription || null,
         })
         .select();
 
@@ -262,15 +277,26 @@ const Index = () => {
       console.log('Order saved successfully:', data);
 
       // Create notification for customer
-      await supabase.from('real_notifications').insert({
+      await createNotification({
         user_id: currentUserId || 'system',
         title: '✅ Order Confirmed!',
         message: `Your order #${order.id} has been confirmed and is being processed.`,
         notification_type: 'success'
       });
 
+      // Save payment transaction if payment method is specified
+      if (order.paymentMethod && order.paymentTiming) {
+        await supabase.from('payment_transactions').insert({
+          order_id: order.id,
+          payment_method: order.paymentMethod,
+          payment_timing: order.paymentTiming,
+          amount: order.totalCost,
+          status: 'pending'
+        });
+      }
+
       // Prepare SMS message
-      const smsMessage = `Hello ${order.customerName}, your Kwimuka order #${order.id} has been confirmed! We'll contact you shortly with driver details. Total: ${order.totalCost.toLocaleString()} RWF`;
+      const smsMessage = `Hello ${order.customerName}, your Kwimuka order #${order.id} has been confirmed! ${order.isVip ? 'VIP Service' : 'Standard Service'} - Total: ${order.totalCost.toLocaleString()} RWF. We'll contact you shortly with driver details.`;
       
       // Trigger SMS notification with comprehensive error handling
       try {
@@ -549,8 +575,24 @@ const Index = () => {
     setCurrentView(view as ViewType);
   };
 
-  const handleJobApplication = (application: JobApplication) => {
-    setJobApplications(prev => [...prev, application]);
+  const handleJobApplication = async (application: Omit<JobApplication, 'id' | 'status' | 'submittedAt'>) => {
+    const success = await submitJobApplication({
+      name: application.name,
+      phone: application.phone,
+      job_role: application.jobRole,
+      message: application.message
+    });
+
+    if (success) {
+      // Also add to local state for immediate UI update
+      const newApplication: JobApplication = {
+        ...application,
+        id: `temp_${Date.now()}`,
+        status: 'pending',
+        submittedAt: new Date()
+      };
+      setJobApplications(prev => [...prev, newApplication]);
+    }
   };
 
   const handleLogin = (success: boolean, role: string, userId?: string, userName?: string) => {

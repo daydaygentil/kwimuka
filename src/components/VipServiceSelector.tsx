@@ -1,149 +1,89 @@
 
 import { useState } from 'react';
-import { Crown, Truck, Users, Sparkles, MapPin, Shield, Clock } from 'lucide-react';
+import { Star, Package, Shield, Clock } from 'lucide-react';
 
 interface VipServiceSelectorProps {
+  onVipToggle: (isVip: boolean, specialItems?: string) => void;
   isVip: boolean;
-  onVipChange: (isVip: boolean) => void;
-  onServiceChange: (serviceType: 'standard' | 'vip') => void;
+  specialItems?: string;
 }
 
-const VipServiceSelector = ({ isVip, onVipChange, onServiceChange }: VipServiceSelectorProps) => {
-  const [selectedService, setSelectedService] = useState<'standard' | 'vip'>('standard');
+const VipServiceSelector = ({ onVipToggle, isVip, specialItems }: VipServiceSelectorProps) => {
+  const [localSpecialItems, setLocalSpecialItems] = useState(specialItems || '');
 
-  const handleServiceSelect = (serviceType: 'standard' | 'vip') => {
-    setSelectedService(serviceType);
-    onVipChange(serviceType === 'vip');
-    onServiceChange(serviceType);
+  const handleVipToggle = (vipEnabled: boolean) => {
+    onVipToggle(vipEnabled, vipEnabled ? localSpecialItems : undefined);
   };
 
-  const vipFeatures = [
-    {
-      icon: Crown,
-      title: "VIP Certified Drivers",
-      description: "Hand-picked, highly trained professional drivers"
-    },
-    {
-      icon: Shield,
-      title: "Premium Insurance",
-      description: "Enhanced coverage for your valuable items"
-    },
-    {
-      icon: Clock,
-      title: "Priority Scheduling",
-      description: "Guaranteed time slots and faster response"
-    },
-    {
-      icon: MapPin,
-      title: "Real-time GPS Tracking",
-      description: "Live tracking with driver contact details"
+  const handleSpecialItemsChange = (value: string) => {
+    setLocalSpecialItems(value);
+    if (isVip) {
+      onVipToggle(true, value);
     }
-  ];
+  };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Service Level</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Standard Service */}
-        <div
-          className={`border-2 rounded-xl p-6 cursor-pointer transition-all ${
-            selectedService === 'standard'
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => handleServiceSelect('standard')}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Truck className="h-8 w-8 text-blue-600" />
-              <div>
-                <h4 className="font-semibold text-gray-900">Standard Moving</h4>
-                <p className="text-sm text-gray-600">Professional moving service</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Starting from</p>
-              <p className="text-2xl font-bold text-blue-600">40,000 RWF</p>
-            </div>
-          </div>
-          
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="flex items-center">
-              <Users className="h-4 w-4 mr-2" />
-              Professional drivers and helpers
-            </li>
-            <li className="flex items-center">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Basic cleaning service available
-            </li>
-            <li className="flex items-center">
-              <MapPin className="h-4 w-4 mr-2" />
-              Standard tracking and updates
-            </li>
-          </ul>
-        </div>
+    <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl p-6 border border-amber-200">
+      <div className="flex items-center space-x-3 mb-4">
+        <Star className="h-6 w-6 text-amber-500" />
+        <h3 className="text-xl font-semibold text-gray-900">VIP Moving Service</h3>
+      </div>
 
-        {/* VIP Service */}
-        <div
-          className={`border-2 rounded-xl p-6 cursor-pointer transition-all relative ${
-            selectedService === 'vip'
-              ? 'border-yellow-500 bg-yellow-50'
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => handleServiceSelect('vip')}
-        >
-          <div className="absolute -top-2 -right-2">
-            <div className="bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              PREMIUM
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Crown className="h-8 w-8 text-yellow-600" />
-              <div>
-                <h4 className="font-semibold text-gray-900">VIP Moving Service</h4>
-                <p className="text-sm text-gray-600">Premium experience</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Starting from</p>
-              <p className="text-2xl font-bold text-yellow-600">140,000 RWF</p>
-            </div>
-          </div>
-          
-          <ul className="space-y-2 text-sm text-gray-600 mb-4">
-            {vipFeatures.map((feature, index) => {
-              const Icon = feature.icon;
-              return (
-                <li key={index} className="flex items-start">
-                  <Icon className="h-4 w-4 mr-2 mt-0.5 text-yellow-600" />
-                  <div>
-                    <span className="font-medium">{feature.title}</span>
-                    <br />
-                    <span className="text-xs">{feature.description}</span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="flex items-center space-x-3 bg-white p-3 rounded-lg">
+          <Package className="h-5 w-5 text-amber-500" />
+          <span className="text-sm text-gray-700">Special Item Handling</span>
+        </div>
+        <div className="flex items-center space-x-3 bg-white p-3 rounded-lg">
+          <Shield className="h-5 w-5 text-amber-500" />
+          <span className="text-sm text-gray-700">Premium Insurance</span>
+        </div>
+        <div className="flex items-center space-x-3 bg-white p-3 rounded-lg">
+          <Clock className="h-5 w-5 text-amber-500" />
+          <span className="text-sm text-gray-700">Priority Service</span>
         </div>
       </div>
 
-      {selectedService === 'vip' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h5 className="font-semibold text-yellow-800 mb-2">🌟 VIP Service Includes:</h5>
-          <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• Dedicated VIP-certified driver and helpers</li>
-            <li>• White-glove packing and handling service</li>
-            <li>• Premium moving supplies and equipment</li>
-            <li>• Real-time GPS tracking with live updates</li>
-            <li>• Priority customer support hotline</li>
-            <li>• Full insurance coverage for valuable items</li>
-          </ul>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            id="vip-service"
+            checked={isVip}
+            onChange={(e) => handleVipToggle(e.target.checked)}
+            className="h-4 w-4 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+          />
+          <label htmlFor="vip-service" className="text-gray-900 font-medium">
+            Enable VIP Service (+50% premium)
+          </label>
         </div>
-      )}
+
+        {isVip && (
+          <div className="mt-4">
+            <label htmlFor="special-items" className="block text-sm font-medium text-gray-700 mb-2">
+              Describe Special Items (optional)
+            </label>
+            <textarea
+              id="special-items"
+              value={localSpecialItems}
+              onChange={(e) => handleSpecialItemsChange(e.target.value)}
+              placeholder="Describe any fragile, valuable, or special items that need extra care..."
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Examples: Piano, artwork, antiques, electronics, etc.
+            </p>
+          </div>
+        )}
+
+        <div className="bg-amber-100 p-3 rounded-lg">
+          <p className="text-sm text-amber-800">
+            <span className="font-medium">VIP Service includes:</span> Dedicated crew, extra careful handling, 
+            premium insurance coverage, and priority scheduling.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

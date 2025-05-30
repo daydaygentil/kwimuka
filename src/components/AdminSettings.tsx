@@ -3,6 +3,7 @@ import { Settings, Send, UserPlus, Edit, MessageSquare, Bell } from "lucide-reac
 import { UserAccount } from '@/types/worker';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface AdminSettingsProps {
   userAccounts: UserAccount[];
@@ -27,6 +28,7 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
   });
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
+  const { createNotification } = useNotifications('admin');
 
   const handleSendSMS = async () => {
     if (smsPhone && smsMessage) {
@@ -69,12 +71,30 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
     }
   };
 
-  const handleSendNotification = () => {
+  const handleSendNotification = async () => {
     if (notificationUserId && notificationMessage) {
-      onSendNotification(notificationUserId, notificationMessage, notificationType);
-      setNotificationUserId("");
-      setNotificationMessage("");
-      alert("Notification sent successfully!");
+      try {
+        await createNotification({
+          user_id: notificationUserId,
+          title: 'Admin Notification',
+          message: notificationMessage,
+          notification_type: notificationType
+        });
+
+        setNotificationUserId("");
+        setNotificationMessage("");
+        toast({
+          title: "Success",
+          description: "Notification sent successfully!",
+        });
+      } catch (error) {
+        console.error('Error sending notification:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send notification",
+          variant: "destructive",
+        });
+      }
     }
   };
 

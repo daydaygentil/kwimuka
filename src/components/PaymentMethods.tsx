@@ -1,86 +1,119 @@
 
-import { CreditCard, Smartphone, Building2, Banknote } from "lucide-react";
+import { useState } from 'react';
+import { CreditCard, Smartphone, Banknote, Clock } from 'lucide-react';
 
-interface PaymentMethodsProps {
-  selectedMethod: string;
-  onMethodSelect: (method: string) => void;
-  orderTotal: number;
+interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  timing: 'prepay' | 'pay_after';
+  description: string;
 }
 
-const PaymentMethods = ({ selectedMethod, onMethodSelect, orderTotal }: PaymentMethodsProps) => {
-  const paymentMethods = [
+interface PaymentMethodsProps {
+  onPaymentMethodChange: (method: string, timing: 'prepay' | 'pay_after') => void;
+  selectedMethod?: string;
+  selectedTiming?: 'prepay' | 'pay_after';
+}
+
+const PaymentMethods = ({ onPaymentMethodChange, selectedMethod, selectedTiming }: PaymentMethodsProps) => {
+  const [paymentMethod, setPaymentMethod] = useState(selectedMethod || 'cash');
+  const [paymentTiming, setPaymentTiming] = useState(selectedTiming || 'pay_after');
+
+  const paymentMethods: PaymentMethod[] = [
     {
       id: 'cash',
-      name: 'Cash Payment',
-      description: 'Pay with cash on delivery',
-      icon: <Banknote className="h-6 w-6" />,
-      color: 'bg-green-100 text-green-600'
+      name: 'Cash',
+      icon: <Banknote className="h-5 w-5" />,
+      timing: 'pay_after',
+      description: 'Pay with cash on completion'
     },
     {
-      id: 'mtn',
-      name: 'MTN Mobile Money',
-      description: 'Pay with MTN MoMo',
-      icon: <Smartphone className="h-6 w-6" />,
-      color: 'bg-yellow-100 text-yellow-600'
+      id: 'mobile_money',
+      name: 'Mobile Money',
+      icon: <Smartphone className="h-5 w-5" />,
+      timing: 'prepay',
+      description: 'MTN Mobile Money, Airtel Money'
     },
     {
-      id: 'airtel',
-      name: 'Airtel Money',
-      description: 'Pay with Airtel Money',
-      icon: <Smartphone className="h-6 w-6" />,
-      color: 'bg-red-100 text-red-600'
+      id: 'visa',
+      name: 'Visa Card',
+      icon: <CreditCard className="h-5 w-5" />,
+      timing: 'prepay',
+      description: 'Secure card payment'
     },
     {
-      id: 'bank',
-      name: 'Bank Transfer',
-      description: 'Direct bank transfer',
-      icon: <Building2 className="h-6 w-6" />,
-      color: 'bg-blue-100 text-blue-600'
+      id: 'mastercard',
+      name: 'Mastercard',
+      icon: <CreditCard className="h-5 w-5" />,
+      timing: 'prepay',
+      description: 'Secure card payment'
     }
   ];
 
+  const handleMethodChange = (method: string, timing: 'prepay' | 'pay_after') => {
+    setPaymentMethod(method);
+    setPaymentTiming(timing);
+    onPaymentMethodChange(method, timing);
+  };
+
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm">
-      <h3 className="font-semibold text-gray-900 mb-4">Payment Method</h3>
-      
-      <div className="space-y-3 mb-6">
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex items-center space-x-3 mb-6">
+        <CreditCard className="h-6 w-6 text-gray-600" />
+        <h3 className="text-xl font-semibold text-gray-900">Payment Method</h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {paymentMethods.map((method) => (
           <div
             key={method.id}
-            onClick={() => onMethodSelect(method.id)}
-            className={`border rounded-lg p-4 cursor-pointer transition-all ${
-              selectedMethod === method.id 
-                ? 'border-green-500 bg-green-50' 
+            onClick={() => handleMethodChange(method.id, method.timing)}
+            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              paymentMethod === method.id
+                ? 'border-green-500 bg-green-50'
                 : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <div className="flex items-center space-x-4">
-              <div className={`p-2 rounded-lg ${method.color}`}>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className={`p-2 rounded-lg ${
+                paymentMethod === method.id ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+              }`}>
                 {method.icon}
               </div>
-              <div className="flex-1">
+              <div>
                 <h4 className="font-medium text-gray-900">{method.name}</h4>
-                <p className="text-sm text-gray-600">{method.description}</p>
+                <p className="text-sm text-gray-500">{method.description}</p>
               </div>
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  checked={selectedMethod === method.id}
-                  onChange={() => onMethodSelect(method.id)}
-                  className="h-4 w-4 text-green-600"
-                />
-              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 text-xs">
+              <Clock className="h-3 w-3 text-gray-400" />
+              <span className="text-gray-500">
+                {method.timing === 'prepay' ? 'Pay Now' : 'Pay After Service'}
+              </span>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="border-t pt-4">
-        <div className="flex justify-between items-center text-lg font-semibold">
-          <span>Total Amount:</span>
-          <span className="text-green-600">{orderTotal.toLocaleString()} RWF</span>
+      {paymentMethod === 'mobile_money' && paymentTiming === 'prepay' && (
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <span className="font-medium">Mobile Money Payment:</span> You'll receive SMS instructions 
+            to complete payment after order confirmation.
+          </p>
         </div>
-      </div>
+      )}
+
+      {(paymentMethod === 'visa' || paymentMethod === 'mastercard') && paymentTiming === 'prepay' && (
+        <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <span className="font-medium">Card Payment:</span> Secure payment processing 
+            will be initiated after order confirmation.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

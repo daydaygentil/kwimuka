@@ -1,5 +1,5 @@
 
-import { DollarSign } from "lucide-react";
+import { Calculator, Star, Truck, Users, Sparkles, Key } from 'lucide-react';
 
 interface PriceBreakdownProps {
   services: {
@@ -9,82 +9,125 @@ interface PriceBreakdownProps {
     keyDelivery: boolean;
   };
   distance?: number;
+  isVip?: boolean;
+  totalCost: number;
 }
 
-const PriceBreakdown = ({ services, distance }: PriceBreakdownProps) => {
-  const baseFee = 15000;
-  const transportFee = 40000;
-  const helperFee = 10000;
-  const cleaningFee = 5000;
-  const keyDeliveryFee = 5000;
+const PriceBreakdown = ({ services, distance, isVip, totalCost }: PriceBreakdownProps) => {
+  const baseTransportCost = 40000;
+  const helperCost = 10000;
+  const cleaningCost = 5000;
+  const keyDeliveryCost = 5000;
+  const distanceRate = 1000; // RWF per km
 
-  const calculateTotal = () => {
-    let total = baseFee;
+  const calculateBaseCost = () => {
+    let cost = 0;
     
-    if (services.transport) total += transportFee;
-    if (services.helpers > 0) total += services.helpers * helperFee;
-    if (services.cleaning) total += cleaningFee;
-    if (services.keyDelivery) total += keyDeliveryFee;
+    if (services.transport) {
+      cost += baseTransportCost;
+      if (distance && distance > 10) {
+        cost += (distance - 10) * distanceRate;
+      }
+    }
     
-    return total;
+    cost += services.helpers * helperCost;
+    
+    if (services.cleaning) {
+      cost += cleaningCost;
+    }
+    
+    if (services.keyDelivery) {
+      cost += keyDeliveryCost;
+    }
+    
+    return cost;
   };
 
-  const total = calculateTotal();
+  const baseCost = calculateBaseCost();
+  const vipPremium = isVip ? baseCost * 0.5 : 0;
+  const finalCost = baseCost + vipPremium;
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm">
-      <div className="flex items-center mb-4">
-        <DollarSign className="h-5 w-5 text-green-600 mr-2" />
-        <h3 className="font-semibold text-gray-900">Price Breakdown</h3>
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="flex items-center space-x-3 mb-6">
+        <Calculator className="h-6 w-6 text-gray-600" />
+        <h3 className="text-xl font-semibold text-gray-900">Price Breakdown</h3>
       </div>
-      
+
       <div className="space-y-3">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Service Fee</span>
-          <span className="font-medium">{baseFee.toLocaleString()} RWF</span>
-        </div>
-        
         {services.transport && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Truck Transport</span>
-            <span className="font-medium">{transportFee.toLocaleString()} RWF</span>
-          </div>
-        )}
-        
-        {services.helpers > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Moving Helpers ({services.helpers})</span>
-            <span className="font-medium">{(services.helpers * helperFee).toLocaleString()} RWF</span>
-          </div>
-        )}
-        
-        {services.cleaning && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Cleaning Service</span>
-            <span className="font-medium">{cleaningFee.toLocaleString()} RWF</span>
-          </div>
-        )}
-        
-        {services.keyDelivery && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Key Delivery</span>
-            <span className="font-medium">{keyDeliveryFee.toLocaleString()} RWF</span>
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <Truck className="h-4 w-4 text-blue-500" />
+              <span className="text-gray-700">Transport Service</span>
+            </div>
+            <span className="font-medium">{baseTransportCost.toLocaleString()} RWF</span>
           </div>
         )}
 
-        {distance && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Distance</span>
-            <span className="font-medium">{distance} km</span>
+        {distance && distance > 10 && services.transport && (
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <Truck className="h-4 w-4 text-blue-400" />
+              <span className="text-gray-700">Extra Distance ({(distance - 10).toFixed(1)} km)</span>
+            </div>
+            <span className="font-medium">{((distance - 10) * distanceRate).toLocaleString()} RWF</span>
+          </div>
+        )}
+
+        {services.helpers > 0 && (
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <Users className="h-4 w-4 text-green-500" />
+              <span className="text-gray-700">Helpers ({services.helpers})</span>
+            </div>
+            <span className="font-medium">{(services.helpers * helperCost).toLocaleString()} RWF</span>
+          </div>
+        )}
+
+        {services.cleaning && (
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <Sparkles className="h-4 w-4 text-purple-500" />
+              <span className="text-gray-700">Cleaning Service</span>
+            </div>
+            <span className="font-medium">{cleaningCost.toLocaleString()} RWF</span>
+          </div>
+        )}
+
+        {services.keyDelivery && (
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <Key className="h-4 w-4 text-orange-500" />
+              <span className="text-gray-700">Key Delivery</span>
+            </div>
+            <span className="font-medium">{keyDeliveryCost.toLocaleString()} RWF</span>
+          </div>
+        )}
+
+        {isVip && (
+          <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex items-center space-x-3">
+              <Star className="h-4 w-4 text-amber-500" />
+              <span className="text-gray-700">VIP Service Premium (50%)</span>
+            </div>
+            <span className="font-medium text-amber-600">+{vipPremium.toLocaleString()} RWF</span>
           </div>
         )}
       </div>
-      
-      <div className="border-t mt-4 pt-4">
-        <div className="flex justify-between items-center">
-          <span className="text-lg font-bold text-gray-900">Total</span>
-          <span className="text-lg font-bold text-green-600">{total.toLocaleString()} RWF</span>
+
+      <div className="mt-6 pt-4 border-t-2 border-gray-200">
+        <div className="flex items-center justify-between">
+          <span className="text-lg font-semibold text-gray-900">Total Cost</span>
+          <span className="text-2xl font-bold text-green-600">{totalCost.toLocaleString()} RWF</span>
         </div>
+        
+        {isVip && (
+          <div className="mt-2 flex items-center space-x-2">
+            <Star className="h-4 w-4 text-amber-500" />
+            <span className="text-sm text-amber-600 font-medium">VIP Service Included</span>
+          </div>
+        )}
       </div>
     </div>
   );
