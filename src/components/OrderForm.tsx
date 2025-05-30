@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Calculator, Plus, Minus, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Calculator, Plus, Minus, Clock, CheckCircle } from "lucide-react";
 import { Order } from "@/pages/Index";
+import RwandaLocationSelector, { LocationSelection } from "./RwandaLocationSelector";
 
 interface OrderFormProps {
   onOrderSubmit: (order: Order) => void;
@@ -22,8 +24,23 @@ const OrderForm = ({
   const [formData, setFormData] = useState({
     customerName: "",
     phoneNumber: "",
-    pickupAddress: "",
-    deliveryAddress: "",
+  });
+
+  // Rwanda location states
+  const [pickupLocation, setPickupLocation] = useState<LocationSelection>({
+    province: '',
+    district: '',
+    sector: '',
+    cell: '',
+    village: ''
+  });
+
+  const [deliveryLocation, setDeliveryLocation] = useState<LocationSelection>({
+    province: '',
+    district: '',
+    sector: '',
+    cell: '',
+    village: ''
   });
 
   const [services, setServices] = useState({
@@ -48,8 +65,16 @@ const OrderForm = ({
     }
   }, [isAuthenticated, currentUserName, currentUserPhone]);
 
+  const getFullAddress = (location: LocationSelection): string => {
+    const parts = [location.village, location.cell, location.sector, location.district, location.province].filter(Boolean);
+    return parts.join(', ');
+  };
+
   const calculateDistance = async () => {
-    if (!formData.pickupAddress || !formData.deliveryAddress) return;
+    const pickupAddress = getFullAddress(pickupLocation);
+    const deliveryAddress = getFullAddress(deliveryLocation);
+    
+    if (!pickupAddress || !deliveryAddress) return;
 
     setIsCalculatingDistance(true);
     try {
@@ -63,8 +88,8 @@ const OrderForm = ({
           contents: [{
             parts: [{
               text: `Calculate the driving distance in kilometers between these two locations in Rwanda:
-              From: ${formData.pickupAddress}
-              To: ${formData.deliveryAddress}
+              From: ${pickupAddress}
+              To: ${deliveryAddress}
               
               Please respond with only a number representing the distance in kilometers. If you cannot determine the exact distance, provide a reasonable estimate based on the locations mentioned.`
             }]
@@ -100,9 +125,20 @@ const OrderForm = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const pickupAddress = getFullAddress(pickupLocation);
+    const deliveryAddress = getFullAddress(deliveryLocation);
+
+    if (!pickupAddress || !deliveryAddress) {
+      alert('Please select complete pickup and delivery locations');
+      return;
+    }
+    
     const order: Order = {
       id: Math.random().toString(36).substr(2, 6).toUpperCase(),
-      ...formData,
+      customerName: formData.customerName,
+      phoneNumber: formData.phoneNumber,
+      pickupAddress,
+      deliveryAddress,
       services,
       distance: distance || 0,
       totalCost: calculateTotal(),
@@ -240,49 +276,31 @@ const OrderForm = ({
             </div>
           </div>
 
-          {/* Addresses */}
+          {/* Rwanda Location Selection */}
           <div className="bg-white p-6 rounded-xl shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Pickup & Delivery</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Pickup & Delivery Locations</h2>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pickup Address *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={formData.pickupAddress}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickupAddress: e.target.value }))}
-                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Enter pickup location"
-                  />
-                  <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                </div>
-              </div>
+            <div className="space-y-6">
+              {/* Pickup Location */}
+              <RwandaLocationSelector
+                label="Pickup Location"
+                value={pickupLocation}
+                onChange={setPickupLocation}
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Delivery Address *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={formData.deliveryAddress}
-                    onChange={(e) => setFormData(prev => ({ ...prev, deliveryAddress: e.target.value }))}
-                    className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Enter delivery location"
-                  />
-                  <MapPin className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                </div>
-              </div>
+              {/* Delivery Location */}
+              <RwandaLocationSelector
+                label="Delivery Location"
+                value={deliveryLocation}
+                onChange={setDeliveryLocation}
+                required
+              />
 
               <button
                 type="button"
                 onClick={calculateDistance}
-                disabled={!formData.pickupAddress || !formData.deliveryAddress || isCalculatingDistance}
+                disabled={!getFullAddress(pickupLocation) || !getFullAddress(deliveryLocation) || isCalculatingDistance}
                 className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center"
               >
                 <Calculator className="h-5 w-5 mr-2" />
