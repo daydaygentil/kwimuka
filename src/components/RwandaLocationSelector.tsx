@@ -26,7 +26,10 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
 }) => {
   const { hierarchy, isLoading, error } = useRwandaLocations();
 
+  console.log('RwandaLocationSelector render:', { hierarchy, value, isLoading, error });
+
   const handleProvinceChange = (province: string) => {
+    console.log('Province changed to:', province);
     onChange({
       province,
       district: '',
@@ -37,6 +40,7 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
   };
 
   const handleDistrictChange = (district: string) => {
+    console.log('District changed to:', district);
     onChange({
       ...value,
       district,
@@ -47,6 +51,7 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
   };
 
   const handleSectorChange = (sector: string) => {
+    console.log('Sector changed to:', sector);
     onChange({
       ...value,
       sector,
@@ -56,6 +61,7 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
   };
 
   const handleCellChange = (cell: string) => {
+    console.log('Cell changed to:', cell);
     onChange({
       ...value,
       cell,
@@ -64,6 +70,7 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
   };
 
   const handleVillageChange = (village: string) => {
+    console.log('Village changed to:', village);
     onChange({
       ...value,
       village
@@ -88,13 +95,14 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
   }
 
   if (error) {
+    console.error('Error in RwandaLocationSelector:', error);
     return (
       <div className="space-y-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">Failed to load locations. Please try again.</p>
+        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-600">Using offline location data</p>
         </div>
       </div>
     );
@@ -113,14 +121,17 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select Province" />
           </SelectTrigger>
-          <SelectContent className="bg-white border shadow-lg z-50">
+          <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
             {hierarchy.provinces.map((province) => (
-              <SelectItem key={province} value={province}>
+              <SelectItem key={province} value={province} className="cursor-pointer hover:bg-gray-100">
                 {province}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {hierarchy.provinces.length === 0 && (
+          <p className="text-xs text-red-500 mt-1">No provinces available</p>
+        )}
       </div>
 
       {/* District Selection */}
@@ -131,9 +142,9 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select District" />
             </SelectTrigger>
-            <SelectContent className="bg-white border shadow-lg z-50">
+            <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
               {(hierarchy.districts[value.province] || []).map((district) => (
-                <SelectItem key={district} value={district}>
+                <SelectItem key={district} value={district} className="cursor-pointer hover:bg-gray-100">
                   {district}
                 </SelectItem>
               ))}
@@ -150,9 +161,9 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Sector" />
             </SelectTrigger>
-            <SelectContent className="bg-white border shadow-lg z-50">
+            <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
               {(hierarchy.sectors[value.district] || []).map((sector) => (
-                <SelectItem key={sector} value={sector}>
+                <SelectItem key={sector} value={sector} className="cursor-pointer hover:bg-gray-100">
                   {sector}
                 </SelectItem>
               ))}
@@ -169,9 +180,9 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Cell" />
             </SelectTrigger>
-            <SelectContent className="bg-white border shadow-lg z-50">
+            <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
               {(hierarchy.cells[value.sector] || []).map((cell) => (
-                <SelectItem key={cell} value={cell}>
+                <SelectItem key={cell} value={cell} className="cursor-pointer hover:bg-gray-100">
                   {cell}
                 </SelectItem>
               ))}
@@ -188,9 +199,9 @@ const RwandaLocationSelector: React.FC<RwandaLocationSelectorProps> = ({
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Village" />
             </SelectTrigger>
-            <SelectContent className="bg-white border shadow-lg z-50">
+            <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-y-auto">
               {(hierarchy.villages[value.cell] || []).map((village) => (
-                <SelectItem key={village} value={village}>
+                <SelectItem key={village} value={village} className="cursor-pointer hover:bg-gray-100">
                   {village}
                 </SelectItem>
               ))}

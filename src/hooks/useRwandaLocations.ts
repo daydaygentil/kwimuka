@@ -18,6 +18,48 @@ export interface LocationHierarchy {
   villages: { [cell: string]: string[] };
 }
 
+// Fallback data structure for Rwanda locations
+const fallbackRwandaData: RwandaLocation[] = [
+  // Kigali Province - Gasabo District
+  { province: "Kigali", district: "Gasabo", sector: "Kimironko", cell: "Bibare", village: "Bibare" },
+  { province: "Kigali", district: "Gasabo", sector: "Kimironko", cell: "Kibagabaga", village: "Kibagabaga" },
+  { province: "Kigali", district: "Gasabo", sector: "Remera", cell: "Rukiri I", village: "Rukiri I" },
+  { province: "Kigali", district: "Gasabo", sector: "Remera", cell: "Rukiri II", village: "Rukiri II" },
+  { province: "Kigali", district: "Gasabo", sector: "Kacyiru", cell: "Kamatamu", village: "Kamatamu" },
+  { province: "Kigali", district: "Gasabo", sector: "Kacyiru", cell: "Kibenga", village: "Kibenga" },
+  
+  // Kigali Province - Kicukiro District
+  { province: "Kigali", district: "Kicukiro", sector: "Niboye", cell: "Niboye", village: "Niboye" },
+  { province: "Kigali", district: "Kicukiro", sector: "Niboye", cell: "Kabuga", village: "Kabuga" },
+  { province: "Kigali", district: "Kicukiro", sector: "Kanombe", cell: "Kanombe", village: "Kanombe" },
+  { province: "Kigali", district: "Kicukiro", sector: "Kanombe", cell: "Ruhuha", village: "Ruhuha" },
+  { province: "Kigali", district: "Kicukiro", sector: "Gatenga", cell: "Gatenga", village: "Gatenga" },
+  
+  // Kigali Province - Nyarugenge District
+  { province: "Kigali", district: "Nyarugenge", sector: "Nyarugenge", cell: "Rwezamenyo", village: "Rwezamenyo" },
+  { province: "Kigali", district: "Nyarugenge", sector: "Nyarugenge", cell: "Nyarugenge", village: "Nyarugenge" },
+  { province: "Kigali", district: "Nyarugenge", sector: "Muhima", cell: "Muhima", village: "Muhima" },
+  { province: "Kigali", district: "Nyarugenge", sector: "Gitega", cell: "Gitega", village: "Gitega" },
+  { province: "Kigali", district: "Nyarugenge", sector: "Kigali", cell: "Ubumwe", village: "Ubumwe" },
+  
+  // Southern Province - Huye District
+  { province: "Southern", district: "Huye", sector: "Tumba", cell: "Tumba", village: "Tumba" },
+  { province: "Southern", district: "Huye", sector: "Ngoma", cell: "Ngoma", village: "Ngoma" },
+  { province: "Southern", district: "Huye", sector: "Mukura", cell: "Mukura", village: "Mukura" },
+  
+  // Northern Province - Musanze District
+  { province: "Northern", district: "Musanze", sector: "Musanze", cell: "Busogo", village: "Busogo" },
+  { province: "Northern", district: "Musanze", sector: "Cyuve", cell: "Cyuve", village: "Cyuve" },
+  
+  // Eastern Province - Kayonza District
+  { province: "Eastern", district: "Kayonza", sector: "Kayonza", cell: "Kayonza", village: "Kayonza" },
+  { province: "Eastern", district: "Kayonza", sector: "Rwinkwavu", cell: "Rwinkwavu", village: "Rwinkwavu" },
+  
+  // Western Province - Karongi District
+  { province: "Western", district: "Karongi", sector: "Bwishyura", cell: "Bwishyura", village: "Bwishyura" },
+  { province: "Western", district: "Karongi", sector: "Mutuntu", cell: "Mutuntu", village: "Mutuntu" }
+];
+
 const useRwandaLocations = () => {
   const [hierarchy, setHierarchy] = useState<LocationHierarchy>({
     provinces: [],
@@ -44,19 +86,24 @@ const useRwandaLocations = () => {
         }
 
         const data = await response.json();
+        console.log('Successfully fetched Rwanda locations from API:', data);
         return data as RwandaLocation[];
       } catch (error) {
-        console.error('Error fetching Rwanda locations:', error);
-        // Fallback to empty array if API fails
-        return [] as RwandaLocation[];
+        console.error('Error fetching Rwanda locations from API:', error);
+        console.log('Using fallback Rwanda location data');
+        // Return fallback data when API fails
+        return fallbackRwandaData;
       }
     },
     staleTime: 1000 * 60 * 60 * 24, // Cache for 24 hours
-    retry: 3
+    retry: 1 // Reduce retries to fail faster and use fallback
   });
 
   useEffect(() => {
-    if (locations && locations.length > 0) {
+    const dataToProcess = locations || fallbackRwandaData;
+    console.log('Processing location data:', dataToProcess);
+    
+    if (dataToProcess && dataToProcess.length > 0) {
       const newHierarchy: LocationHierarchy = {
         provinces: [],
         districts: {},
@@ -65,7 +112,7 @@ const useRwandaLocations = () => {
         villages: {}
       };
 
-      locations.forEach((location) => {
+      dataToProcess.forEach((location) => {
         // Add province
         if (!newHierarchy.provinces.includes(location.province)) {
           newHierarchy.provinces.push(location.province);
@@ -119,6 +166,7 @@ const useRwandaLocations = () => {
         newHierarchy.villages[key].sort();
       });
 
+      console.log('Generated hierarchy:', newHierarchy);
       setHierarchy(newHierarchy);
     }
   }, [locations]);
@@ -127,7 +175,7 @@ const useRwandaLocations = () => {
     hierarchy,
     isLoading,
     error,
-    locations: locations || []
+    locations: locations || fallbackRwandaData
   };
 };
 
