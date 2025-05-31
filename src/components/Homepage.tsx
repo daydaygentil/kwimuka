@@ -1,14 +1,16 @@
-import { Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star, CheckCircle, Eye, UserCheck, MapPin as Location, Smartphone, Apple, Crown } from "lucide-react";
+import { 
+  Truck, Users, Sparkles, Key, MapPin, Phone, Clock, Star, 
+  CheckCircle, Eye, UserCheck, MapPin as Location, Smartphone, 
+  Apple, Crown, Plus, Search, HelpCircle, FileText, UserPlus 
+} from "lucide-react";
+
+import { ViewType } from '@/pages/Index';
 
 interface HomepageProps {
-  onPlaceOrder: () => void;
-  onTrackOrder: () => void;
-  onApplyJobs: () => void;
-  onHelp: () => void;
-  onTerms: () => void;
+  setCurrentView: (view: ViewType) => void;
 }
 
-const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: HomepageProps) => {
+const Homepage = ({ setCurrentView }: { setCurrentView: (view: string) => void }) => {
   const services = [
     {
       icon: Truck,
@@ -110,18 +112,19 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
           </p>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
-            <button
-              onClick={onPlaceOrder}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">            <button
+              onClick={() => setCurrentView('order')}
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
+              <Plus className="h-6 w-6" />
               Place an Order
             </button>
             
             <button
-              onClick={onTrackOrder}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl"
+              onClick={() => setCurrentView('track')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
             >
+              <Search className="h-6 w-6" />
               Track Order
             </button>
           </div>
@@ -323,11 +326,11 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
               <p className="text-green-100 text-sm">Provide cleaning services for moves</p>
             </div>
           </div>
-          
-          <button
-            onClick={onApplyJobs}
-            className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold transition-colors"
+            <button
+            onClick={() => setCurrentView('apply-jobs')}
+            className="bg-white text-green-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
           >
+            <UserPlus className="h-5 w-5" />
             Apply for Jobs
           </button>
         </div>
@@ -341,18 +344,19 @@ const Homepage = ({ onPlaceOrder, onTrackOrder, onApplyJobs, onHelp, onTerms }: 
             Have questions about our services or need assistance with your order?
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <button
-              onClick={onHelp}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">            <button
+              onClick={() => setCurrentView('help')}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
             >
+              <HelpCircle className="h-5 w-5" />
               Get Help & FAQ
             </button>
             
             <button
-              onClick={onTerms}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+              onClick={() => setCurrentView('terms')}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
             >
+              <FileText className="h-5 w-5" />
               Terms & Conditions
             </button>
           </div>

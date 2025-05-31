@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Order, OrderStatus, JobApplication } from "@/pages/Index";
+import { Order, OrderStatus, JobApplication, ViewType } from "@/pages/Index";
 import { Search, Filter, DollarSign, Users, Truck, FileText, Printer, Settings as SettingsIcon } from "lucide-react";
 import { JobAssignment, Worker, ServiceNotification, UserAccount } from '@/types/worker';
 import ServiceStatusTracker from '@/components/ServiceStatusTracker';
 import ReportsPanel from '@/components/ReportsPanel';
 import AdminSettings from '@/components/AdminSettings';
 import SocialShare from '@/components/SocialShare';
+import DriverVerificationPanel from '@/components/DriverVerificationPanel';
 
 interface AdminPanelProps {
   orders: Order[];
@@ -18,7 +19,7 @@ interface AdminPanelProps {
   onUpdateJobApplication: (applicationId: string, status: 'pending' | 'approved' | 'rejected') => void;
   onUpdateUserAccounts: (accounts: UserAccount[]) => void;
   availableDrivers: { id: string; name: string; phone: string }[];
-  onLogout: () => void;
+  setCurrentView: (view: ViewType) => void;
 }
 
 const AdminPanel = ({ 
@@ -32,19 +33,32 @@ const AdminPanel = ({
   onUpdateJobApplication, 
   onUpdateUserAccounts,
   availableDrivers, 
-  onLogout 
+  setCurrentView 
 }: AdminPanelProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
-  const [activeTab, setActiveTab] = useState<'orders' | 'applications' | 'workers' | 'reports' | 'settings'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'applications' | 'workers' | 'drivers' | 'reports' | 'settings'>('orders');
 
   const drivers = availableDrivers.map(driver => driver.name);
-
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  // Sort and filter orders with VIP priority
+  const filteredOrders = orders
+    .filter(order => {
+      const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      // Sort VIP orders first
+      if (a.isVip && !b.isVip) return -1;
+      if (!a.isVip && b.isVip) return 1;
+      
+      // Then by status (pending first)
+      if (a.status === 'pending' && b.status !== 'pending') return -1;
+      if (a.status !== 'pending' && b.status === 'pending') return 1;
+      
+      // Finally by creation date (newest first)
+      return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
   const totalRevenue = orders.reduce((sum, order) => sum + order.totalCost, 0);
@@ -133,9 +147,8 @@ const AdminPanel = ({
             >
               <Printer className="h-4 w-4 mr-2" />
               Print Report
-            </button>
-            <button
-              onClick={onLogout}
+            </button>            <button
+              onClick={() => setCurrentView('unified-login')}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Logout
@@ -239,6 +252,16 @@ const AdminPanel = ({
                 }`}
               >
                 Workers ({workers.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('drivers')}
+                className={`py-4 border-b-2 font-medium text-sm ${
+                  activeTab === 'drivers'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Driver Applications
               </button>
               <button
                 onClick={() => setActiveTab('reports')}
@@ -503,6 +526,10 @@ const AdminPanel = ({
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}          {activeTab === 'drivers' && (
+            <div className="p-6">
+              <DriverVerificationPanel />
             </div>
           )}
 

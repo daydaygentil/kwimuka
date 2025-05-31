@@ -19,12 +19,11 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
   const [notificationUserId, setNotificationUserId] = useState("");
   const [notificationMessage, setNotificationMessage] = useState("");
   const [notificationType, setNotificationType] = useState<'email' | 'push' | 'sms'>('sms');
-  const [editingUser, setEditingUser] = useState<UserAccount | null>(null);
-  const [newUser, setNewUser] = useState({
+  const [editingUser, setEditingUser] = useState<UserAccount | null>(null);  const [newUser, setNewUser] = useState({
     name: "",
     phone: "",
     password: "",
-    role: "customer" as "customer" | "driver" | "helper" | "cleaner" | "admin"
+    role: "customer" as "customer" | "driver" | "helper" | "cleaner" | "admin" | "agent"
   });
   const [isSending, setIsSending] = useState(false);
   const { toast } = useToast();
@@ -57,12 +56,12 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
           });
         } else {
           throw new Error(data?.error || 'Failed to send SMS');
-        }
-      } catch (error: any) {
+        }      } catch (error: unknown) {
         console.error('Error sending SMS:', error);
+        const errorMessage = error instanceof Error ? error.message : "Failed to send SMS";
         toast({
           title: "Error",
-          description: error.message || "Failed to send SMS",
+          description: errorMessage,
           variant: "destructive",
         });
       } finally {
@@ -372,20 +371,19 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
                   placeholder="Password"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
-              </div>
-              <div>
+              </div>              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Role
                 </label>
                 <select
-                  value={newUser.role}
-                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as any })}
+                  value={newUser.role}                  onChange={(e) => setNewUser({ ...newUser, role: e.target.value as "customer" | "driver" | "helper" | "cleaner" | "admin" | "agent" })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
                   <option value="customer">Customer</option>
                   <option value="driver">Driver</option>
                   <option value="helper">Helper</option>
                   <option value="cleaner">Cleaner</option>
+                  <option value="agent">Agent</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
@@ -432,16 +430,16 @@ const AdminSettings = ({ userAccounts, onUpdateUserAccounts, onSendSMS, onSendNo
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Role
-                </label>
-                <select
+                </label>                <select
                   value={editingUser.role}
-                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as any })}
+                  onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as UserAccount['role'] })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
                   <option value="customer">Customer</option>
                   <option value="driver">Driver</option>
                   <option value="helper">Helper</option>
                   <option value="cleaner">Cleaner</option>
+                  <option value="agent">Agent</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>

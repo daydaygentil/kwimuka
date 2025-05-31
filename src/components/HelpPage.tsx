@@ -1,16 +1,21 @@
 
 import { ArrowLeft, Truck, Users, Sparkles, Key, Phone, MapPin, Clock, DollarSign } from "lucide-react";
+import { ViewType, UserRole } from "@/pages/Index";
+import { Toast } from "@/components/ui/toast";
 
 interface HelpPageProps {
-  onBack: () => void;
+  setCurrentView: (view: ViewType) => void;
+  userRole: UserRole;  // Adding the missing userRole prop
+  isAuthenticated: boolean;
+  toast?: (props: Toast) => { id: string; dismiss: () => void; update: (props: ToastProps) => void };
 }
 
-const HelpPage = ({ onBack }: HelpPageProps) => {
+const HelpPage = ({ setCurrentView, userRole, isAuthenticated, toast }: HelpPageProps) => {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
       <div className="max-w-4xl mx-auto">
         <button
-          onClick={onBack}
+          onClick={() => setCurrentView('home')}
           className="flex items-center text-green-600 hover:text-green-700 mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />

@@ -2,7 +2,7 @@
 import { ArrowLeft, FileText, Shield, Clock, Truck, Users, ClipboardCheck } from "lucide-react";
 
 interface TermsAndConditionsProps {
-  onBack: () => void;
+  setCurrentView: (view: ViewType) => void;
 }
 
 const TermsAndConditions = ({ onBack }: TermsAndConditionsProps) => {

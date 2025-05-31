@@ -1,10 +1,9 @@
-
 import { Home, Plus, Truck, Settings, Search, HelpCircle, LogOut, LogIn, User } from "lucide-react";
-import { UserRole } from "@/pages/Index";
+import { UserRole, ViewType } from "@/pages/Index";
 
 interface MobileBottomNavProps {
-  currentView: string;
-  setCurrentView: (view: string) => void;
+  currentView: ViewType;
+  setCurrentView: (view: ViewType) => void;
   userRole: UserRole;
   onRoleChange: (role: UserRole) => void;
   isAuthenticated?: boolean;
@@ -20,109 +19,118 @@ const MobileBottomNav = ({
   onLogout
 }: MobileBottomNavProps) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 z-50">
       <div className="flex justify-around items-center">
-        <button
+        <NavButton
+          view="home"
+          currentView={currentView}
           onClick={() => setCurrentView('home')}
-          className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-            currentView === 'home' 
-              ? 'text-green-600 bg-green-50' 
-              : 'text-gray-500'
-          }`}
-        >
-          <Home className="h-5 w-5 mb-1" />
-          <span className="text-xs font-medium">Home</span>
-        </button>
+          icon={<Home className="h-5 w-5 mb-1" />}
+          label="Home"
+        />
 
         {(!isAuthenticated || userRole === 'customer') && (
           <>
-            <button
+            <NavButton
+              view="order"
+              currentView={currentView}
               onClick={() => setCurrentView('order')}
-              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-                currentView === 'order' 
-                  ? 'text-green-600 bg-green-50' 
-                  : 'text-gray-500'
-              }`}
-            >
-              <Plus className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Order</span>
-            </button>
-
-            <button
+              icon={<Plus className="h-5 w-5 mb-1" />}
+              label="Order"
+            />
+            <NavButton
+              view="track"
+              currentView={currentView}
               onClick={() => setCurrentView('track')}
-              className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-                currentView === 'track' 
-                  ? 'text-green-600 bg-green-50' 
-                  : 'text-gray-500'
-              }`}
-            >
-              <Search className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Track</span>
-            </button>
+              icon={<Search className="h-5 w-5 mb-1" />}
+              label="Track"
+            />
           </>
         )}
 
         {isAuthenticated && (userRole === 'driver' || userRole === 'helper' || userRole === 'cleaner') && (
-          <button
+          <NavButton
+            view="driver"
+            currentView={currentView}
             onClick={() => setCurrentView('driver')}
-            className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-              currentView === 'driver' 
-                ? 'text-green-600 bg-green-50' 
-                : 'text-gray-500'
-            }`}
-          >
-            <Truck className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Jobs</span>
-          </button>
+            icon={<Truck className="h-5 w-5 mb-1" />}
+            label="Jobs"
+          />
         )}
 
         {isAuthenticated && userRole === 'admin' && (
-          <button
+          <NavButton
+            view="admin"
+            currentView={currentView}
             onClick={() => setCurrentView('admin')}
-            className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-              currentView === 'admin' 
-                ? 'text-green-600 bg-green-50' 
-                : 'text-gray-500'
-            }`}
-          >
-            <Settings className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Admin</span>
-          </button>
+            icon={<Settings className="h-5 w-5 mb-1" />}
+            label="Admin"
+          />
         )}
 
-        <button
+        {isAuthenticated && userRole === 'agent' && (
+          <NavButton
+            view="agent"
+            currentView={currentView}
+            onClick={() => setCurrentView('agent')}
+            icon={<User className="h-5 w-5 mb-1" />}
+            label="Agent"
+          />
+        )}
+
+        <NavButton
+          view="help"
+          currentView={currentView}
           onClick={() => setCurrentView('help')}
-          className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
-            currentView === 'help' 
-              ? 'text-green-600 bg-green-50' 
-              : 'text-gray-500'
-          }`}
-        >
-          <HelpCircle className="h-5 w-5 mb-1" />
-          <span className="text-xs font-medium">Help</span>
-        </button>
+          icon={<HelpCircle className="h-5 w-5 mb-1" />}
+          label="Help"
+        />
 
         {/* Authentication Button */}
         {isAuthenticated ? (
-          <button
+          <NavButton
+            view="unified-login"
+            currentView={currentView}
             onClick={onLogout}
-            className="flex flex-col items-center py-2 px-3 rounded-lg text-red-500"
-          >
-            <LogOut className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Logout</span>
-          </button>
+            icon={<LogOut className="h-5 w-5 mb-1" />}
+            label="Logout"
+            className="text-red-500"
+          />
         ) : (
-          <button
+          <NavButton
+            view="unified-login"
+            currentView={currentView}
             onClick={() => setCurrentView('unified-login')}
-            className="flex flex-col items-center py-2 px-3 rounded-lg text-gray-500"
-          >
-            <LogIn className="h-5 w-5 mb-1" />
-            <span className="text-xs font-medium">Login</span>
-          </button>
+            icon={<LogIn className="h-5 w-5 mb-1" />}
+            label="Login"
+          />
         )}
       </div>
     </div>
   );
 };
+
+interface NavButtonProps {
+  view: ViewType;
+  currentView: ViewType;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  className?: string;
+}
+
+const NavButton = ({ view, currentView, onClick, icon, label, className = "" }: NavButtonProps) => (
+  <button
+    onClick={onClick}
+    className={`flex flex-col items-center py-2 px-3 rounded-lg transition-colors ${
+      currentView === view 
+        ? 'text-green-600 bg-green-50' 
+        : 'text-gray-500'
+    } ${className}`}
+  >
+    {icon}
+    <span className="text-xs font-medium">{label}</span>
+  </button>
+);
 
 export default MobileBottomNav;

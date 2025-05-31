@@ -1,5 +1,4 @@
-
-import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut, Navigation, X } from "lucide-react";
+import { MapPin, Clock, DollarSign, CheckCircle, Printer, LogOut, Navigation, X, Star } from "lucide-react";
 import { Order, OrderStatus, UserRole } from "@/pages/Index";
 import { useState } from "react";
 import MapComponent from "./MapComponent";
@@ -9,9 +8,9 @@ interface DriverViewProps {
   driverId: string;
   userName?: string;
   userRole?: UserRole;
-  onUpdateOrder: (orderId: string, status: OrderStatus) => void;
+  onUpdateOrder: (orderId: string, updates: Partial<Order>) => void;
   onCancelOrder?: (orderId: string) => void;
-  onLogout?: () => void;
+  setCurrentView: (view: ViewType) => void;
 }
 
 const DriverView = ({ 
@@ -21,9 +20,10 @@ const DriverView = ({
   userRole = 'driver',
   onUpdateOrder,
   onCancelOrder,
-  onLogout
+  setCurrentView
 }: DriverViewProps) => {
   const [activeOrderMap, setActiveOrderMap] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -35,12 +35,19 @@ const DriverView = ({
     }
   };
 
-  const getNextStatus = (currentStatus: OrderStatus): OrderStatus => {
+  const getNextStatus = (currentStatus: OrderStatus): Partial<Order> => {
+    let updates: Partial<Order> = {};
     switch (currentStatus) {
-      case 'assigned': return 'in-progress';
-      case 'in-progress': return 'completed';
-      default: return currentStatus;
+      case 'assigned':
+        updates.status = 'in-progress';
+        break;
+      case 'in-progress':
+        updates.status = 'completed';
+        break;
+      default:
+        updates.status = currentStatus;
     }
+    return updates;
   };
 
   const getActionButtonText = (status: OrderStatus) => {
@@ -110,6 +117,29 @@ const DriverView = ({
       printWindow.print();
     }
   };
+  // Sort orders to show VIP first, then by status priority
+  const getStatusPriority = (status: string) => {
+    switch (status) {
+      case 'pending': return 4;
+      case 'assigned': return 3;
+      case 'in-progress': return 2;
+      case 'completed': return 1;
+      default: return 0;
+    }
+  };
+
+  const sortedOrders = [...orders].sort((a, b) => {
+    // First sort by VIP status
+    if (a.isVip && !b.isVip) return -1;
+    if (!a.isVip && b.isVip) return 1;
+    
+    // Then by order status priority
+    const statusPriorityDiff = getStatusPriority(b.status) - getStatusPriority(a.status);
+    if (statusPriorityDiff !== 0) return statusPriorityDiff;
+    
+    // Finally by creation date
+    return b.createdAt.getTime() - a.createdAt.getTime();
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6">
@@ -118,15 +148,13 @@ const DriverView = ({
           <div>
             <div className="flex items-center space-x-3">
               <h1 className="text-2xl font-bold text-gray-900">{getRoleTitle()}</h1>
-              {onLogout && (
-                <button
-                  onClick={onLogout}
-                  className="flex items-center text-red-600 hover:text-red-700 text-sm font-medium"
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Logout
-                </button>
-              )}
+              <button
+                onClick={() => setCurrentView('unified-login')}
+                className="flex items-center text-red-600 hover:text-red-700 text-sm font-medium"
+              >
+                <LogOut className="h-4 w-4 mr-1" />
+                Logout
+              </button>
             </div>
             <p className="text-gray-600">
               {userName && `Welcome ${userName} - `}
@@ -144,7 +172,7 @@ const DriverView = ({
           )}
         </div>
 
-        {orders.length === 0 ? (
+        {sortedOrders.length === 0 ? (
           <div className="bg-white p-8 rounded-xl shadow-sm text-center">
             <div className="mb-4">
               <Clock className="h-12 w-12 text-gray-400 mx-auto" />
@@ -156,9 +184,23 @@ const DriverView = ({
           </div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order) => (
-              <div key={order.id} className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="flex justify-between items-start mb-4">
+            {sortedOrders.map((order) => (
+              <div 
+                key={order.id} 
+                className={`bg-white rounded-xl shadow-sm overflow-hidden ${
+                  order.isVip ? 'border-2 border-amber-400 relative' : ''
+                }`}
+              >
+                {order.isVip && (
+                  <div className="absolute top-4 right-4">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                      <Star className="h-3 w-3 mr-1" />
+                      VIP Priority
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-start mb-4 p-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">Order #{order.id}</h3>
                     <p className="text-gray-600">{order.customerName}</p>
@@ -260,7 +302,7 @@ const DriverView = ({
                 )}
 
                 {/* Action Buttons */}
-                <div className="space-y-2">
+                <div className="space-y-2 p-4">
                   {order.status === 'assigned' && (
                     <div className="flex space-x-2">
                       <button
@@ -282,11 +324,31 @@ const DriverView = ({
 
                   {(order.status === 'assigned' || order.status === 'in-progress') && (
                     <button
-                      onClick={() => onUpdateOrder(order.id, getNextStatus(order.status))}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
+                      onClick={async () => {
+                        try {
+                          setIsUpdating(order.id);
+                          await onUpdateOrder(order.id, getNextStatus(order.status));
+                        } catch (error) {
+                          console.error('Failed to update order status:', error);
+                          // The parent component should handle showing error toasts
+                        } finally {
+                          setIsUpdating(null);
+                        }
+                      }}
+                      disabled={isUpdating === order.id}
+                      className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      {getActionButtonText(order.status)}
+                      {isUpdating === order.id ? (
+                        <>
+                          <span className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full" />
+                          Updating...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          {getActionButtonText(order.status)}
+                        </>
+                      )}
                     </button>
                   )}
                 </div>

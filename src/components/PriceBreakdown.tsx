@@ -105,13 +105,20 @@ const PriceBreakdown = ({ services, distance, isVip, totalCost }: PriceBreakdown
           </div>
         )}
 
-        {isVip && (
-          <div className="flex items-center justify-between py-2 border-b border-gray-100">
-            <div className="flex items-center space-x-3">
-              <Star className="h-4 w-4 text-amber-500" />
-              <span className="text-gray-700">VIP Service Premium (50%)</span>
+        {isVip && (          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg p-4 mb-2">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-3">
+                <Star className="h-5 w-5 text-amber-500" />
+                <span className="font-medium text-amber-800">VIP Service Premium</span>
+              </div>
+              <span className="font-bold text-amber-600">+{vipPremium.toLocaleString()} RWF</span>
             </div>
-            <span className="font-medium text-amber-600">+{vipPremium.toLocaleString()} RWF</span>
+            <ul className="text-xs text-amber-700 space-y-1 ml-8">
+              <li>• Premium handling & equipment</li>
+              <li>• Priority scheduling</li>
+              <li>• Up to 5M RWF insurance</li>
+              <li>• Dedicated support team</li>
+            </ul>
           </div>
         )}
       </div>

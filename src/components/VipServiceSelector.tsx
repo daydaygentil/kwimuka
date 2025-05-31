@@ -27,20 +27,27 @@ const VipServiceSelector = ({ onVipToggle, isVip, specialItems }: VipServiceSele
       <div className="flex items-center space-x-3 mb-4">
         <Star className="h-6 w-6 text-amber-500" />
         <h3 className="text-xl font-semibold text-gray-900">VIP Moving Service</h3>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex items-center space-x-3 bg-white p-3 rounded-lg">
-          <Package className="h-5 w-5 text-amber-500" />
-          <span className="text-sm text-gray-700">Special Item Handling</span>
+      </div>      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="flex flex-col space-y-2 bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center space-x-3">
+            <Package className="h-5 w-5 text-amber-500" />
+            <span className="font-medium text-gray-900">Premium Handling</span>
+          </div>
+          <p className="text-xs text-gray-600">Certified experts with special equipment for delicate items</p>
         </div>
-        <div className="flex items-center space-x-3 bg-white p-3 rounded-lg">
-          <Shield className="h-5 w-5 text-amber-500" />
-          <span className="text-sm text-gray-700">Premium Insurance</span>
+        <div className="flex flex-col space-y-2 bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center space-x-3">
+            <Shield className="h-5 w-5 text-amber-500" />
+            <span className="font-medium text-gray-900">Full Insurance</span>
+          </div>
+          <p className="text-xs text-gray-600">Comprehensive coverage up to 5M RWF for your valuables</p>
         </div>
-        <div className="flex items-center space-x-3 bg-white p-3 rounded-lg">
-          <Clock className="h-5 w-5 text-amber-500" />
-          <span className="text-sm text-gray-700">Priority Service</span>
+        <div className="flex flex-col space-y-2 bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center space-x-3">
+            <Clock className="h-5 w-5 text-amber-500" />
+            <span className="font-medium text-gray-900">Priority Service</span>
+          </div>
+          <p className="text-xs text-gray-600">First in queue with dedicated support & real-time tracking</p>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 
-project_id = "zdswnywedlagrukfyxzk"
+# Supabase configuration file
+project_id = "7379eb6cfd6f990050453626e4ae34f103f5e484daa63e9a4a448e07b6aed210"
 
 [api]
 enabled = true

@@ -8,6 +8,9 @@ export interface Worker {
   type: WorkerType;
   isAvailable: boolean;
   currentJobs: string[];
+  vipCertified?: boolean;
+  rating?: number;
+  totalCompletedJobs?: number;
 }
 
 export interface JobAssignment {
@@ -37,7 +40,7 @@ export interface UserAccount {
   name: string;
   phone: string;
   password: string;
-  role: 'customer' | 'admin' | 'driver' | 'helper' | 'cleaner';
+  role: 'customer' | 'admin' | 'driver' | 'helper' | 'cleaner' | 'agent';
   createdAt: Date;
 }
 

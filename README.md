@@ -1,14 +1,25 @@
-# Welcome to your Lovable project
+# Kwimuka Easy Move
 
-## Project info
+A full-featured moving service application built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/1c54d3a5-b6d3-467a-9d13-3db1f9f1c5ea
+## Features
 
-## How can I edit this code?
+- Real-time order tracking
+- Customer, Driver, Admin and Agent portals
+- Interactive maps and location selection
+- Payment processing
+- Automated SMS notifications
+- Multi-service booking (Transport, Helpers, Cleaning, Key Delivery)
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- React 18 with TypeScript
+- Vite for build tooling
+- TailwindCSS for styling
+- Supabase for backend and authentication
+- Edge Functions for serverless computing
+
+## Getting Started
 
 Simply visit the [Lovable Project](https://lovable.dev/projects/1c54d3a5-b6d3-467a-9d13-3db1f9f1c5ea) and start prompting.
 

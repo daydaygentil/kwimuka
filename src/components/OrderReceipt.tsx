@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { ArrowLeft, Printer, Search, CheckCircle } from "lucide-react";
+import { ArrowLeft, Printer, Search, CheckCircle, Star } from "lucide-react";
 import { Order } from "@/pages/Index";
 import OrderStatusTracker from "@/components/OrderStatusTracker";
 
 interface OrderReceiptProps {
   order: Order;
-  onBack: () => void;
-  onTrackOrder: () => void;
+  setCurrentView: (view: ViewType) => void;
 }
 
 const OrderReceipt = ({ order, onBack, onTrackOrder }: OrderReceiptProps) => {
@@ -31,12 +30,11 @@ const OrderReceipt = ({ order, onBack, onTrackOrder }: OrderReceiptProps) => {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
-            <button
-              onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          <div className="flex items-center">            <button
+              onClick={() => setCurrentView('home')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors group"
             >
-              <ArrowLeft className="h-5 w-5 text-gray-600" />
+              <ArrowLeft className="h-5 w-5 text-gray-600 group-hover:text-green-600" />
             </button>
             <h1 className="text-xl font-bold text-gray-900 ml-4">Order Confirmed</h1>
           </div>
@@ -131,8 +129,23 @@ const OrderReceipt = ({ order, onBack, onTrackOrder }: OrderReceiptProps) => {
           </div>
 
           {/* Services */}
-          <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Services</h3>
+          <div className="mb-6">            <h3 className="font-semibold text-gray-900 mb-3">Services</h3>
+            {order.isVip && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Star className="h-4 w-4 text-amber-500" />
+                  <span className="font-medium text-amber-800">VIP Moving Service</span>
+                </div>
+                {order.specialItemsDescription && (
+                  <div className="text-sm text-amber-700 mb-2">
+                    <span className="font-medium">Special Items:</span> {order.specialItemsDescription}
+                  </div>
+                )}
+                <div className="text-xs text-amber-600">
+                  Includes premium handling, priority service, and full insurance coverage
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-600">Service Fee</span>
@@ -188,13 +201,12 @@ const OrderReceipt = ({ order, onBack, onTrackOrder }: OrderReceiptProps) => {
               onChange={(e) => setTrackingCode(e.target.value)}
               placeholder="Enter order code"
               className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-            <button
-              onClick={onTrackOrder}
+            />            <button
+              onClick={() => setCurrentView('track')}
               className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center"
             >
               <Search className="h-4 w-4 mr-2" />
-              Track
+              Track Order
             </button>
           </div>
           <p className="text-sm text-gray-600 mt-2">
